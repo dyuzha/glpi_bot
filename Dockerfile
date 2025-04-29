@@ -20,6 +20,10 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
+# Копируем скрипты и делаем их исполняемыми
+COPY ./scripts ./scripts
+RUN chmod +x /app/scripts/*.sh
+
 # Копируем остальные файлы приложения
 COPY . .
 
