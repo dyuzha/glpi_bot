@@ -6,13 +6,17 @@ from aiogram.client.default import DefaultBotProperties
 from config_handlers import TELEGRAM_TOKEN
 
 
-logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
+# Используем __name__ для автоматического определения имени модуля
+logger = logging.getLogger(__name__)
+
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from config_handlers import TELEGRAM_TOKEN
 
-bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(
+    parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 # Импорт обработчиков после инициализации dp
