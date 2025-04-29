@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from os import environ
 
+
 LOG_CONF = environ.get('GLPI_TG_LOG_CONF') or \
     "logging_config.json"
 
@@ -13,10 +14,10 @@ def setup_logging():
         with open(Path(LOG_CONF), 'r', encoding='utf-8') as f:
             logging_config = json.load(f)
     except FileNotFoundError:
-        raise Exception(f"Файл конфигурации {LOG_CONF} не найден")
+        raise Exception(f"Config file {LOG_CONF} not found")
     except json.JSONDecodeError as e:
-        raise Exception(f"Ошибка в JSON: {e.msg} (строка {e.lineno}, \
-                столбец {e.colno})")
+        raise Exception(f"Error in JSON: {e.msg} (line {e.lineno}, \
+                column {e.colno})")
 
     # Если есть файловый обработчик, создаем папки и файл заранее
     if "handlers" in logging_config and "file" in logging_config["handlers"]:
