@@ -17,6 +17,6 @@ docker run -it --rm \
     \ -p 8080:8080 \
     # \ -v $(pwd)/logs:/app/logs \  # Монтируем папку с логами
     \ --env-file .env \  # Подгружаем переменные окружения
-    \ --name glpi_bot_container glpi_bot
+    \ --name gbc glpi_bot
 
 # Для фонового режима замените `-it` на `-d`
