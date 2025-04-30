@@ -1,18 +1,16 @@
-[project]
+[tool.poetry]
 name = "glpi-bot"
 version = "0.1.0"
 description = "TG-bot for interaction with the GLPI"
-authors = [
-    {name = "dyuzha",email = "matvey10d@gmail.com"}
-]
+authors = ["dyuzha <matvey10d@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.9"
-dependencies = [
-    "aiogram (>=3.20.0.post0,<4.0.0)",
-    "requests (>=2.32.3,<3.0.0)"
-]
 
+[tool.poetry.dependencies]
+# requires-python = ">=3.9"
+python = "^3.9"
+aiogram = "^3.20.0"
+requests = "^2.32.3"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
