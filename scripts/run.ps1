@@ -1,0 +1,1 @@
+ docker run -d -v C:\Users\dyuzhev_mn\me\Python\glpi_bot\settings.ini:/glpi_bot/settings.ini -e GLPI_TG_SETTINGS_CONF=/glpi_bot/settings.ini -v C:\Users\dyuzhev_mn\me\Python\glpi_bot\logging_config.json:/glpi_bot/logging_config.json -e GLPI_TG_SETTINGS_CONF=/glpi_bot/logging_config.json -p 8080:8080 --name gbc glpi_bot
