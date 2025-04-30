@@ -6,7 +6,7 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
-# Собираем образ с тегом 'myapp'
+# Собираем образ с тегом 'glpi_bot'
 docker build -t glpi_bot .
 
-echo "Образ 'myapp' успешно собран"
+echo "Образ 'glpi_bot' успешно собран"
