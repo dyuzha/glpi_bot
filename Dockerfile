@@ -8,24 +8,30 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем Poetry
-ENV POETRY_VERSION=1.7.1
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:${PATH}"
+ENV POETRY_VERSION=2.1.2 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    PATH="/opt/poetry/bin:$PATH"
 
-# Копируем файлы проекта
-WORKDIR /app
-COPY pyproject.toml poetry.lock ./
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    # Создаем символическую ссылку для глобального доступа
+    ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
+
+# Сначала копируем только файлы зависимостей
+WORKDIR /glpi_bot
+COPY ./app/pyproject.toml ./app/poetry.lock ./
 
 # Устанавливаем зависимости проекта
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
-# Копируем скрипты и делаем их исполняемыми
-COPY ./scripts ./scripts
-RUN chmod +x /app/scripts/*.sh
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-root
 
 # Копируем остальные файлы приложения
 COPY . .
 
+# Копируем скрипты и делаем их исполняемыми
+COPY ./scripts ./scripts
+RUN chmod +x scripts/*.sh
+
 # Запускаем приложение
-CMD ["python", "main.py"]
+CMD ["python", "./app/main.py"]
