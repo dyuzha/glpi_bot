@@ -31,7 +31,7 @@ class EmailConfirmation():
 
     def _build_confirm_mail(self, code: str, email_to: str) -> MIMEText:
         """Создание email сообщения"""
-        msg = MIMEText(self.body % code)
+        msg = MIMEText(self.body.format(code))
         msg['Subject'] = self.subject
         msg['From'] = self.smtp_username
         msg['To'] = email_to
@@ -58,6 +58,5 @@ class EmailConfirmation():
         except Exception as e:
             logger.warning(f"Ошибка при отправке письма на {msg['To']}: {e}")
             return None
-
 
 mail_confirmation = EmailConfirmation(**MAIL_DATA)

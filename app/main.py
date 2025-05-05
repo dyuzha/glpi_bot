@@ -1,6 +1,5 @@
 from config_handlers import setup_logging
 from bot import bot, dp
-from mail import mail_confirmation
 
 
 # Инициализация логирования ДО всего остального

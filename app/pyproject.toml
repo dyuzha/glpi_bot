@@ -11,6 +11,7 @@ python = "^3.9"
 aiogram = "^3.20.0"
 requests = "^2.32.3"
 aiosmtplib = "^4.0.1"
+sqlalchemy = "^2.0.40"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]

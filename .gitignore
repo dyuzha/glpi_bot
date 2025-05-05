@@ -2,3 +2,5 @@ app/logs/*
 __pycache__
 settings.ini
 logging_config.json
+mail_config.ini
+users.db

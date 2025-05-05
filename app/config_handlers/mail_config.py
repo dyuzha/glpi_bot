@@ -14,7 +14,7 @@ if not Path(MAIL_CONFIG).exists():
 MAIL_DATA = {
     'smtp_server' : config['data']['smtp_server'],
     'smtp_port' : config['data']['smtp_port'],
-    'smtp_password' : config['data']['use_tls'],
+    'use_tls' : config['data']['use_tls'],
     'smtp_username' : config['data']['smtp_username'],
     'smtp_password' : config['data']['smtp_password']
 }
