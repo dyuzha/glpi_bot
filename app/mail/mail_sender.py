@@ -8,14 +8,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class MailSender():
-    """Класс для отправки сообщений на email"""
-    def __init__(self, mail_config):
-        self.smtp_server = mail_config['smtp_server']
-        self.smtp_port = mail_config['smtp_port']
-        self.smtp_username = mail_config['smtp_username']
-        self.smtp_password = mail_config['smtp_password']
-        self.use_tls = mail_config['use_tls']
+class EmailConfirmation():
+    """Класс для подтверждения email"""
+    subject = "Код подтверждения авторизации в Telegram-боте **ПРОФИТ**"
+    body = """
+        Здравствуйте,\n
+        Ваш код подтверждения для телеграмм-бота: {}\n
+        Введите этот код в сообщениях боту для регистрации.
+        """
+
+    def __init__(self, **mail_data):
+        self.smtp_server = mail_data['smtp_server']
+        self.smtp_port = mail_data['smtp_port']
+        self.smtp_username = mail_data['smtp_username']
+        self.smtp_password = mail_data['smtp_password']
+        self.use_tls = mail_data['use_tls']
 
     def generate_confirmation_code(self, length=8) -> str:
         """Генерация случайного кода подтверждения"""
@@ -24,14 +31,8 @@ class MailSender():
 
     def _build_confirm_mail(self, code: str, email_to: str) -> MIMEText:
         """Создание email сообщения"""
-        subject = "Код подтверждения авторизации в Telegram-боте **ПРОФИТ**"
-        body = f"""Здравствуйте,\n
-        Ваш код подтверждения для телеграмм-бота: {code}\n
-        Введите этот код в сообщениях боту для регистрации.
-        """
-        # Создание сообщения
-        msg = MIMEText(body)
-        msg['Subject'] = subject
+        msg = MIMEText(self.body % code)
+        msg['Subject'] = self.subject
         msg['From'] = self.smtp_username
         msg['To'] = email_to
         return msg
@@ -58,4 +59,5 @@ class MailSender():
             logger.warning(f"Ошибка при отправке письма на {msg['To']}: {e}")
             return None
 
-mail_sender = MailSender(MAIL_DATA)
+
+mail_confirmation = EmailConfirmation(**MAIL_DATA)

@@ -9,3 +9,7 @@ class TicketCreation(StatesGroup):
     waiting_for_title = State()
     waiting_for_description = State()
     confirm_data = State()
+
+class Authorization(StatesGroup):
+    waiting_for_login = State()
+    waiting_for_code = State()
