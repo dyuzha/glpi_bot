@@ -2,24 +2,32 @@ import logging
 from aiogram import types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from bot.keyboards import auth_kb
+from bot.keyboards import repeat_code_kb
 from bot import dp
-from bot.states import Authorization
+from bot.states import Authorization, Base
 from services import mail_confirmation, get_email, DBInterface
 from datetime import datetime, timedelta
 
 
 logger = logging.getLogger(__name__)
 
-
-@dp.message(Command('authorization'))
-async def authorization(messages: types.Message, state: FSMContext):
-    await messages.answer(
+REGISTER_NEEDED=(
     "Для продолжения взаимодействия с ботом необходима авторизация\n"
-    "Введите свой логин, используемый в вашей организации \
-    (н-р: <code>ivanov_ii</code>):",
-            parse_mode="HTML"
+    "Введите свой логин, используемый в вашей организации (н-р: ivanov_ii):"
     )
+
+REPEAT_REQUEST=(
+    )
+
+LOGIN_NOT_FOUND=(
+    "❌ Пользователь с таким логином не найден.\n"
+    "Попробуйте ввести логин еще раз:"
+        )
+
+@dp.message(Base.waiting_authorization)
+async def authorization(messages: types.Message, state: FSMContext):
+    await messages.answer(REGISTER_NEEDED,
+                          reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Authorization.waiting_for_login)
 
 
@@ -40,10 +48,7 @@ async def handle_login(messages: types.Message, state: FSMContext):
     email = get_email(login)
 
     if email is False:
-        await messages.answer(
-            "❌ Пользователь с таким логином не найден.\n"
-            "Попробуйте ввести логин еще раз:"
-        )
+        await messages.answer(LOGIN_NOT_FOUND)
         return
 
     elif email is None:
@@ -72,7 +77,7 @@ async def handle_login(messages: types.Message, state: FSMContext):
             f"На <b>{email}</b> был отправлен 8-значный код авторизации.\n"
             f"⏳ Код действителен в течение 5 минут\n"
             f"Введите его для завершения авторизации:",
-            parse_mode="HTML"
+            parse_mode="HTML", reply_markup=repeat_code_kb,
         )
         await state.set_state(Authorization.waiting_for_code)
 
@@ -107,3 +112,4 @@ async def handle_code(message: types.Message, state: FSMContext):
         await message.answer("✅ Авторизация успешно завершена!")
         DBInterface.save_user(telegram_id=message.from_user.id, login=state_data['login'])
         await state.clear()
+        await state.set_state(Base.authorization)

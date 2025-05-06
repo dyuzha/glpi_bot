@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
 
 class Base(StatesGroup):
-    no_authorization = State()
+    waiting_authorization = State()
     authorization = State()
 
 class TicketCreation(StatesGroup):

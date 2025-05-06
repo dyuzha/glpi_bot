@@ -7,7 +7,7 @@ from services import DBInterface
 from aiogram.fsm.context import FSMContext
 from bot.states import Base
 
-logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
+logger = logging.getLogger(__name__)
 
 START_MESSAGE = (
     "👋 Привет! Я ПРОФИТ-бот для работы с GLPI.\n"
@@ -41,6 +41,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
         if login is None:
             await message.answer(AUTH_REQUIRED_MESSAGE, parse_mode="HTML")
             logger.info(f"User {user_id} needs authorization")
+            await state.set_state(Base.waiting_authorization)
+
 
         else:
             logger.info(f"User {user_id} already authorized as {login}")

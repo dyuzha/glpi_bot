@@ -36,7 +36,7 @@ def type_kb():
         resize_keyboard=True
     )
 
-def auth_kb():
+def repeat_code_kb():
     return ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="Отправить код повторно")]],
         resize_keyboard=True

@@ -24,5 +24,11 @@ dp = Dispatcher()
 # dp.update.middleware(AuthMiddleware())
 
 # Импорт обработчиков после инициализации dp
-from .handlers import register_ticket_handlers
+from .handlers import (
+    register_ticket_handlers,
+    authorization_handlers,
+    initialisation_handlers
+)
 register_ticket_handlers(dp)
+authorization_handlers(dp)
+initialisation_handlers(dp)
