@@ -48,8 +48,15 @@ class DBInterface:
             session.close()
 
     @classmethod
-    def check_user(cls, telegram_id: str) -> bool:
+    def check_user(cls, telegram_id: int) -> bool:
         session = Session()
         user = session.query(Users).filter_by(telegram_id=telegram_id).first()
         session.close()
         return user is not None
+
+
+    @classmethod
+    def get_login(cls, telegram_id: int) -> str | None:
+        with Session() as session:
+            user = session.query(Users).filter_by(telegram_id=telegram_id).first()
+            return user.login if user else None

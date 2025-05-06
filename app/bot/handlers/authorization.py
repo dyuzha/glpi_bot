@@ -2,7 +2,7 @@ import logging
 from aiogram import types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from bot.keyboards import main_kb
+from bot.keyboards import auth_kb
 from bot import dp
 from bot.states import Authorization
 from services import mail_confirmation, get_email, DBInterface
@@ -17,7 +17,7 @@ async def authorization(messages: types.Message, state: FSMContext):
     await messages.answer(
     "Для продолжения взаимодействия с ботом необходима авторизация\n"
     "Введите свой логин, используемый в вашей организации \
-            (н-р: <code>ivanov_ii</code>):",
+    (н-р: <code>ivanov_ii</code>):",
             parse_mode="HTML"
     )
     await state.set_state(Authorization.waiting_for_login)
@@ -84,6 +84,7 @@ async def handle_login(messages: types.Message, state: FSMContext):
         )
         await state.clear()
 
+
 @dp.message(Authorization.waiting_for_code, F.text.func(
     lambda text: text.isdigit() and len(text) == 8))
 async def handle_code(message: types.Message, state: FSMContext):
@@ -106,4 +107,3 @@ async def handle_code(message: types.Message, state: FSMContext):
         await message.answer("✅ Авторизация успешно завершена!")
         DBInterface.save_user(telegram_id=message.from_user.id, login=state_data['login'])
         await state.clear()
-

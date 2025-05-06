@@ -5,13 +5,13 @@ from aiogram.fsm.context import FSMContext
 from glpi.api import GLPIConnection
 from bot.keyboards import main_kb, back_kb, confirm_kb, type_kb
 from bot import dp
-from bot.states import TicketCreation
+from bot.states import TicketCreation, Base
 from config_handlers import GLPI_CONFIG
 
 
 logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
 
-@dp.message(F.text == "Создать заявку")
+@dp.message(F.text == "Создать заявку", Base.authorization)
 async def start_ticket_creation(message: types.Message, state: FSMContext):
     """Выбрать Инцидент/Запрос"""
     await message.answer(

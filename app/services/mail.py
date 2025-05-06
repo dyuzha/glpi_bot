@@ -48,6 +48,7 @@ class EmailConfirmation():
                 hostname=self.smtp_server,
                 port=self.smtp_port,
                 use_tls=self.use_tls
+                # use_tls= False
             ) as server:
                 await server.login(self.smtp_username, self.smtp_password)
                 await server.send_message(msg)
