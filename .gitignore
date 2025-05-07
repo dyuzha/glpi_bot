@@ -1,6 +1,15 @@
-app/logs/*
-__pycache__
+# Конфиги
 settings.ini
+ad_config.ini
 logging_config.json
 mail_config.ini
+
+# Логи
+app/logs/*
+
+# Кеш
+__pycache__
+
+# БД
 users.db
+
