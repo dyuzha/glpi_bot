@@ -5,8 +5,9 @@ from aiogram.fsm.context import FSMContext
 from bot.keyboards import auth_kb, main_kb
 from bot import dp
 from bot.states import Authorization, Base
-from services import mail_confirmation, get_email, DBInterface
+from services import mail_confirmation, DBInterface, get_email
 from datetime import datetime, timedelta
+# from services import ldap_service
 
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,9 @@ async def handle_login(messages: types.Message, state: FSMContext):
         return
 
     # Полкучения email
+    logger.info("Поиск email...")
     email = get_email(login)
+    logger.info("email получен:{email}")
 
     # Обработка, если email не найден
     if email is False:
