@@ -1,11 +1,11 @@
 import logging
-from aiogram import types
-from aiogram.filters import Command
+from aiogram import types, F
+from aiogram.filters import Command, StateFilter
 from bot.keyboards import main_kb
 from bot import dp
 from services import DBInterface
 from aiogram.fsm.context import FSMContext
-from bot.states import Base
+from bot.states import Base, Authorization
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,9 @@ AUTH_REQUIRED_MESSAGE = (
     "(н-р: <code>ivanov_ii</code>):"
 )
 
+@dp.message(StateFilter(None))
+async def handle_first_message(message: types.Message, state: FSMContext):
+    await cmd_start( message, state)
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, state: FSMContext):
@@ -39,14 +42,19 @@ async def cmd_start(message: types.Message, state: FSMContext):
             return
 
         if login is None:
-            await message.answer(AUTH_REQUIRED_MESSAGE, parse_mode="HTML")
+            await message.answer(
+                AUTH_REQUIRED_MESSAGE, parse_mode="HTML",
+                reply_markup=types.ReplyKeyboardRemove()
+            )
             logger.info(f"User {user_id} needs authorization")
-            await state.set_state(Base.waiting_authorization)
-
+            await state.set_state(Authorization.waiting_for_login)
 
         else:
             logger.info(f"User {user_id} already authorized as {login}")
-            await message.answer(START_MESSAGE, reply_markup=main_kb())
+            await message.answer(
+                "Воспользуйся кнопками ниже, для взаимодействия с ботом",
+                reply_markup=main_kb()
+            )
             await state.set_state(Base.authorization)
 
     except Exception as e:

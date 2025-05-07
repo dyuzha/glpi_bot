@@ -54,9 +54,18 @@ class DBInterface:
         session.close()
         return user is not None
 
-
     @classmethod
     def get_login(cls, telegram_id: int) -> str | None:
         with Session() as session:
             user = session.query(Users).filter_by(telegram_id=telegram_id).first()
             return user.login if user else None
+
+    @classmethod
+    def delete_user(cls, telegram_id: int) -> bool:
+        with Session() as session:
+            user = session.query(Users).filter_by(telegram_id=telegram_id).first()
+            if user:
+                session.delete(user)
+                session.commit()
+                return True
+            return False

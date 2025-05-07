@@ -9,7 +9,7 @@ from bot.states import TicketCreation, Base
 from config_handlers import GLPI_CONFIG
 
 
-logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
+logger = logging.getLogger(__name__)
 
 @dp.message(F.text == "Создать заявку", Base.authorization)
 async def start_ticket_creation(message: types.Message, state: FSMContext):
@@ -194,6 +194,7 @@ async def cancel_creation(message: types.Message, state: FSMContext):
         "🚫 Создание заявки отменено",
         reply_markup=main_kb()
     )
+
 
 # @dp.message(F.photo)
 # async def handle_photo(message: types.Message, state: FSMContext):
