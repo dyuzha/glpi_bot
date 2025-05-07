@@ -3,18 +3,16 @@ from pathlib import Path
 from os import environ
 
 
-AD_CONFIGS = environ.get('GLPI_TG_SETTINGS_CONF') or \
-    "settings.ini"
+AD_CONFIGS = environ.get('GLPI_TG_AD_CONFIGS') or \
+    "ad_configs.ini"
 
 config = ConfigParser()
-config.read(SETTINGS)
-if not Path(SETTINGS).exists():
-    raise FileNotFoundError(f"Config file {SETTINGS} not found")
+config.read(AD_CONFIGS)
+if not Path(AD_CONFIGS).exists():
+    raise FileNotFoundError(f"Config file {AD_CONFIGS} not found")
 
-GLPI_CONFIG = {
-    'glpi_url': config['glpi']['glpi_url'],
-    'app_token': config['glpi']['app_token'],
-    'username': config['glpi']['username'],
-    'password': config['glpi']['password']
+AD_CONFIG = {
+    'server': config['ad']['server'],
+    'user': config['ad']['user'],
+    'password': config['ad']['password']
 }
-TELEGRAM_TOKEN = config['telegram']['token']
