@@ -72,7 +72,7 @@ async def handle_login(messages: types.Message, state: FSMContext):
 
     # Полкучение email
     try:
-        logger.debug("Поиск email...")
+        logger.debug(f"Поиск email для {login}")
         mail = get_user_mail(login)
         logger.debug(f"Email получен:{mail}")
 

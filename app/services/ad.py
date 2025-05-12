@@ -34,6 +34,7 @@ def get_user_mail(login):
     }
 
     try:
+        logger.debug(f"Отправка запроса для пользователя: {login}")
         # Отправляем POST запрос
         response = requests.post(
                 URL,
@@ -41,29 +42,37 @@ def get_user_mail(login):
                 json=data,
                 timeout=TIMEOUT
                 )
-        logger.debug(f"Raw response text: {response.text}")
+        logger.debug(f"Raw response: status: {response:status}, text: {response.text}")
 
         # Обраьбатываем HTTP-ошибки
         if response.status_code == 404:
-            raise LDAPUserNotFound()
+
+            raise LDAPUserNotFound(f"Пользователь {login} не найден")
 
         # Генерируем исключения для HTTP-ошибок
         response.raise_for_status()
 
 
-        parsed_data = response.json()
-        logger.debug(f"Полученные данные: {parsed_data}")
+        # Парсим JSON
+        try:
+            parsed_data = response.json()
+            logger.debug(f"Полученные данные: {parsed_data}")
+        except ValueError as e:
+            raise ValueError("Невалидный JSON в ответе") from e
 
-        # # Проверяем структуру ответа
-        # if not isinstance(parsed_data, dict) \
-        #     or parsed_data.get("status") != "success":
-        #     raise LDAPError()
+        # Проверяем статус успешности (если такой есть в API)
+        if parsed_data.get("status") != "success":
+            raise LDAPError(f"Запрос завершился с ошибкой: \
+                    {parsed_data.get('message', 'Unknown error')}")
 
         if not parsed_data.get("data", {}).get("mail"):
             raise ValueError("Email не найден в ответе")
 
         return parsed_data["data"]["mail"]
 
+
+    except requests.exceptions.Timeout:
+        raise LDAPError("Таймаут при подключении к серверу") from None
 
     except requests.exceptions.RequestException as e:
         raise LDAPError() from e
