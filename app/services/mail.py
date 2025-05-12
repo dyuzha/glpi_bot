@@ -43,6 +43,7 @@ class EmailConfirmation():
         msg = self._build_confirm_mail(code, email_to)
 
         try:
+            logger.debug("Подключение к SMTP серверу")
             # Подключение и отправка
             async with aiosmtplib.SMTP(
                 hostname=self.smtp_server,
