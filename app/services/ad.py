@@ -1,5 +1,9 @@
+import logging
 import requests
 from .exceptions import LDAPError, LDAPUserNotFound
+
+
+logger = logging.getLogger(__name__)
 
 
 URL = "http://localhost:82/get_user/mail"
@@ -52,10 +56,10 @@ def get_user_mail(login):
         #     or parsed_data.get("status") != "success":
         #     raise LDAPError()
 
-        if not data.get("data", {}).get("mail"):
+        if not parsed_data.get("data", {}).get("mail"):
             raise ValueError("Email не найден в ответе")
 
-        return data["data"]["mail"]
+        return parsed_data["data"]["mail"]
 
 
     except requests.exceptions.RequestException as e:
