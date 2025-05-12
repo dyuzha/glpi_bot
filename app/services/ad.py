@@ -34,6 +34,7 @@ def get_user_mail(login):
     }
 
     try:
+        # Отправляем POST запрос
         response = requests.post(
                 URL,
                 headers=HEADERS,
@@ -46,10 +47,11 @@ def get_user_mail(login):
             raise LDAPUserNotFound()
 
         # Генерируем исключения для HTTP-ошибок
-        # response.raise_for_status()
+        response.raise_for_status()
 
 
         parsed_data = response.json()
+        logger.debug(f"Полученные данные: {parsed_data}")
 
         # # Проверяем структуру ответа
         # if not isinstance(parsed_data, dict) \

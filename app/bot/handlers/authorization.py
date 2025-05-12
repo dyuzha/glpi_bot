@@ -56,6 +56,7 @@ AUTHORIZATION_ERROR=(
 @dp.message(Authorization.waiting_for_login, F.text)
 async def handle_login(messages: types.Message, state: FSMContext):
     login = str(messages.text).strip()
+    logging.debug(f"Получен логин от пользоватля: {login}")
     await state.update_data(login=login)
 
     state_data = await state.get_data()
@@ -83,22 +84,22 @@ async def handle_login(messages: types.Message, state: FSMContext):
         await state.set_state(Authorization.send_code)
 
     except LDAPMailNotFound as e:
-        logger.info(f"Error: {e}")
+        logger.warning(f"Error: {e}")
         await messages.answer(MAIL_NOT_FOUND)
         await state.clear()
 
     except LDAPUserNotFound as e:
-        logger.info(f"Error: {e}")
+        logger.warning(f"Error: {e}")
         await messages.answer(USER_NOT_FOUND)
         await state.clear()
 
     except LDAPError as e:
-        logger.warning(f"Error: {e}")
+        logger.critical(f"Error: {e}")
         await messages.answer(AUTHORIZATION_ERROR)
         await state.clear()
 
     except Exception as e:
-        logger.warning(f"Error: ")
+        logger.critical(f"Error: {e}")
         await messages.answer(AUTHORIZATION_ERROR)
         await state.clear()
 
