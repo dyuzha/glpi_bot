@@ -7,7 +7,8 @@ logger = logging.getLogger(__name__)
 
 
 # URL = "http://localhost:82/get_user/mail"
-URL = "http://ad_api:8000/get_user/mail"  # Используем внутреннее имя контейнера
+# URL = "http://ad_api:8000/get_user/mail"  # Используем внутреннее имя контейнера
+URL = "http://aac:8000/get_user/mail"  # Используем внутреннее имя контейнера
 HEADERS = {"Content-Type": "application/json"}
 TIMEOUT = 10  # Таймаут соединения в секундах
 
