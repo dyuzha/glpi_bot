@@ -50,7 +50,11 @@ class EmailConfirmation():
                 use_tls=self.use_tls
                 # use_tls=False
             ) as server:
-                await server.login(self.smtp_username, self.smtp_password)
+                try:
+                    await server.login(self.smtp_username, self.smtp_password)
+                    logger.debug("Успешная авторизация на SMTP сервере")
+                except Exception as e:
+                    logger.warning("Неудачная авторизация на SMTP сервере")
                 await server.send_message(msg)
 
             logger.info(f"Письмо с кодом подтверждения успешно отправлено \
