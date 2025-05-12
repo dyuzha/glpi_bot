@@ -104,8 +104,8 @@ async def handle_login(messages: types.Message, state: FSMContext):
         await state.clear()
 
 
-@dp.message(Authorization.send_code)
-async def send_code(messages: types.Message,state: FSMContext):
+@dp.message(Authorization.send_code, F.text)
+async def send_code(messages: types.Message, state: FSMContext):
     """Выполняет отправку кода на email"""
     state_data = await state.get_data()
     mail = state_data["mail"]
