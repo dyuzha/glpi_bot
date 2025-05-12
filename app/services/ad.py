@@ -34,7 +34,8 @@ def get_user_mail(login):
     }
 
     try:
-        logger.debug(f"Отправка запроса для пользователя: {login}")
+        logger.debug(f"Отправка запроса: URL={URL}, данные={data}")
+
         # Отправляем POST запрос
         response = requests.post(
                 URL,
@@ -42,6 +43,7 @@ def get_user_mail(login):
                 json=data,
                 timeout=TIMEOUT
                 )
+
         logger.debug(f"Raw response: status: {response.status_code}, text: {response.text}")
 
         # Обраьбатываем HTTP-ошибки
