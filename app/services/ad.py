@@ -46,7 +46,7 @@ def get_user_mail(login):
             raise LDAPUserNotFound()
 
         # Генерируем исключения для HTTP-ошибок
-        response.raise_for_status()
+        # response.raise_for_status()
 
 
         parsed_data = response.json()
