@@ -104,16 +104,20 @@ async def handle_login(messages: types.Message, state: FSMContext):
         await state.clear()
 
 
-@dp.message(Authorization.send_code, F.text)
+@dp.message(Authorization.send_code)
 async def send_code(messages: types.Message, state: FSMContext):
     """Выполняет отправку кода на email"""
+    logger.debug("Переход к обработчику отправки кода")
     state_data = await state.get_data()
     mail = state_data["email"]
+
     try:
+        logger.debug("Попытка отправить код...")
         code = await mail_confirmation.send_confirmation_email(mail)
         if code is None:
             raise Exception("Не удалось отправить код")
 
+        logger.info(f"Код отправлен на {mail}")
         await state.update_data(
             email=mail,
             code=code,
