@@ -1,70 +1,65 @@
-import logging
-from ldap3 import Server, Connection, ALL
-from ldap3.core.exceptions import LDAPException
-from typing import Optional, Type
-from types import TracebackType
-
-logger = logging.getLogger(__name__)
+import requests
+from .exceptions import LDAPError, LDAPUserNotFound
 
 
-class LDAPService:
-    def __init__(self, config):
-        self.config = config
-        self.connection: Optional[Connection] = None
-
-    def __enter__(self):
-        try:
-            self.connection = Connection(
-                server= self.config.server,
-                user=self.config.user,
-                password=self.config.password,
-                auto_bind=True
-            )
-            logger.error(f"Подключение к ldap осуществлено!")
-            return self
-        except LDAPException as e:
-            logger.error(f"Connection error: {e}")
-            raise
-
-    def __exit__(self,
-                 exception_type: Optional[Type[BaseException]],
-                 exception_value: Optional[BaseException],
-                 traceback: Optional[TracebackType]) -> bool:
-        if self.connection:
-            if not self.connection.closed:
-                self.connection.unbind()
-
-        return exception_type is None
+URL = "http://localhost:82/get_user/mail"
+HEADERS = {"Content-Type": "application/json"}
+TIMEOUT = 10  # Таймаут соединения в секундах
 
 
-    def get_user_mail(self, username, base_dn) -> bool | str:
+def get_user_mail(login):
+    """
+    Получает email пользователя из AD
 
-        if not self.connection or self.connection.closed:
-            raise RuntimeError("LDAP connection is not established")
+    Args:
+        login: Логин пользователя (sAMAccountName)
 
-        try:
-             # Ищем пользователя по sAMAccountName
-            search_filter = f"(sAMAccountName={username})"
-            logger.info(f"Поиск пользователя по логину: {username}")
-            self.connection.search(
-                search_base=base_dn,
-                search_filter=search_filter,
-                attributes=['mail']
-            )
+    Returns:
+        Email пользователя
 
-            if not self.connection.entries:
-                logger.info(f"Пользователь {username} не найден:")
-                return False  # Пользователь не найден
+    Raises:
+        LDAPError: Если произошла ошибка при запросе
+        LDAPUserNotFound: Если пользователь не найден
+        ValueError: Если неверный формат ответа
+    """
 
-            user_entry = self.connection.entries[0]
-            logger.info(f"Найден пользователь: {user_entry}")
+    data = {
+        "sAMAccountName": login,
+        "ou": "OU=krd",
+        "domain": "art-t.ru"
+    }
 
-            if 'mail' not in user_entry or not user_entry.mail.value:
-                raise ValueError(f"У пользователя {username} не указан email в AD")
+    try:
+        response = requests.post(
+                URL,
+                headers=HEADERS,
+                json=data,
+                timeout=TIMEOUT
+                )
 
-            return str(user_entry.mail.value)
+        # Обраьбатываем HTTP-ошибки
+        if response.status_code == 404:
+            raise LDAPUserNotFound()
 
-        except LDAPException as e:
-            logger.error(f"LDAP error: {e}")
-            return False
+        # Генерируем исключения для HTTP-ошибок
+        response.raise_for_status()
 
+
+        parsed_data = response.json()
+
+        # # Проверяем структуру ответа
+        # if not isinstance(parsed_data, dict) \
+        #     or parsed_data.get("status") != "success":
+        #     raise LDAPError()
+
+        if not data.get("data", {}).get("mail"):
+            raise ValueError("Email не найден в ответе")
+
+        return data["data"]["mail"]
+
+
+    except requests.exceptions.RequestException as e:
+        raise LDAPError() from e
+
+    except (ValueError, KeyError) as e:
+        raise ValueError(f"Ошибка при обработке ответа сервера: {str(e)}") from e

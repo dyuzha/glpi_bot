@@ -55,7 +55,7 @@ class DBInterface:
         return user is not None
 
     @classmethod
-    def get_login(cls, telegram_id: int) -> str | None:
+    def get_login(cls, telegram_id: int):
         with Session() as session:
             user = session.query(Users).filter_by(telegram_id=telegram_id).first()
             return user.login if user else None

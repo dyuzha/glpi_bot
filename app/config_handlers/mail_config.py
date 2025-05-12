@@ -3,7 +3,7 @@ from pathlib import Path
 from os import environ
 
 
-MAIL_CONFIG = environ.get('GLPI_TG_MAIL_CONFIGS') or \
+MAIL_CONFIG = environ.get('GLPI_TG_MAIL_CONFIG') or \
     "mail_config.ini"
 
 config = ConfigParser()

@@ -18,3 +18,5 @@ from .authorization import (
     handle_login,
     handle_code,
 )
+
+from .admins import delete_user

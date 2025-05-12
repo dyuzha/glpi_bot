@@ -1,12 +1,13 @@
 import logging
 from aiogram import types, F
-from aiogram.filters import Command
+# from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from bot.keyboards import auth_kb, main_kb
 from bot import dp
 from bot.states import Authorization, Base
-from services import mail_confirmation, DBInterface, get_email
+from services import mail_confirmation, DBInterface, get_user_mail
 from datetime import datetime, timedelta
+from services.exceptions import LDAPError, LDAPUserNotFound, LDAPMailNotFound
 # from services import ldap_service
 
 
@@ -17,13 +18,32 @@ REGISTER_NEEDED=(
     "Введите свой логин, используемый в вашей организации (н-р: ivanov_ii):"
     )
 
+MAIL_NOT_FOUND=(
+    "Mail не найден для данного пользователя\n"
+    "Обратитесь к вашему системному администратору"
+    )
+
 REPEAT_REQUEST=(
+    )
+
+USER_NOT_FOUND= (
+    "Пользователь с данным логином не найден.\n"
+    "Попробуйте еще раз."
     )
 
 LOGIN_NOT_FOUND=(
     "❌ Пользователь с таким логином не найден.\n"
     "Попробуйте ввести логин еще раз:"
-        )
+    )
+
+LOGIN_FOUND=(
+    "На вашу корпоративную почту: {} направлено письмо с кодом подтверждения.\n"
+    )
+
+AUTHORIZATION_ERROR=(
+    "Сервис авторизации временно недоступен.\n"
+    "Попробуйте позже или обратитесь в поддержку."
+    )
 
 # @dp.message(Base.waiting_authorization)
 # async def authorization(messages: types.Message, state: FSMContext):
@@ -36,6 +56,8 @@ LOGIN_NOT_FOUND=(
 @dp.message(Authorization.waiting_for_login, F.text)
 async def handle_login(messages: types.Message, state: FSMContext):
     login = str(messages.text).strip()
+    await state.update_data(login=login)
+
     state_data = await state.get_data()
 
     # проверка временного ограничения на запрос кода
@@ -47,42 +69,59 @@ async def handle_login(messages: types.Message, state: FSMContext):
         )
         return
 
-    # Полкучения email
-    logger.info("Поиск email...")
-    email = get_email(login)
-    logger.info("email получен:{email}")
-
-    # Обработка, если email не найден
-    if email is False:
-        await messages.answer(LOGIN_NOT_FOUND)
-        return
-
-    # Обработка, если сервис не работает
-    elif email is None:
-        await messages.answer(
-            "Сервис авторизации временно недоступен.\n"
-            "Попробуйте позже или обратитесь в поддержку."
-        )
-        await state.clear()
-        return
-
-    # Если все хорошо, отправляем код
+    # Полкучение email
     try:
-        code = await mail_confirmation.send_confirmation_email(email)
+        logger.debug("Поиск email...")
+        mail = get_user_mail(login)
+        logger.debug(f"Email получен:{mail}")
 
-        if not code:
+        # Обработка, если email не найден
+        if mail == "None":
+            raise LDAPMailNotFound
+
+        await state.update_data(email=mail)
+        await state.set_state(Authorization.send_code)
+
+    except LDAPMailNotFound as e:
+        logger.info(f"Error: {e}")
+        await messages.answer(MAIL_NOT_FOUND)
+        await state.clear()
+
+    except LDAPUserNotFound as e:
+        logger.info(f"Error: {e}")
+        await messages.answer(USER_NOT_FOUND)
+        await state.clear()
+
+    except LDAPError as e:
+        logger.warning(f"Error: {e}")
+        await messages.answer(AUTHORIZATION_ERROR)
+        await state.clear()
+
+    except Exception as e:
+        logger.warning(f"Error: ")
+        await messages.answer(AUTHORIZATION_ERROR)
+        await state.clear()
+
+
+@dp.message(Authorization.send_code)
+async def send_code(messages: types.Message,state: FSMContext):
+    """Выполняет отправку кода на email"""
+    state_data = await state.get_data()
+    mail = state_data["mail"]
+    try:
+        code = await mail_confirmation.send_confirmation_email(mail)
+        if code is None:
             raise Exception("Не удалось отправить код")
 
         await state.update_data(
-            email=email,
+            email=mail,
             code=code,
-            login=login,
             code_created_at=datetime.now(),
             last_request_time=datetime.now(),
         )
 
         await messages.answer(
-            f"На <b>{email}</b> был отправлен 8-значный код авторизации.\n"
+            f"На <b>{mail}</b> был отправлен 8-значный код авторизации.\n"
             f"⏳ Код действителен в течение 5 минут\n"
             f"Введите его для завершения авторизации:",
             parse_mode="HTML", reply_markup=auth_kb(),
@@ -90,7 +129,7 @@ async def handle_login(messages: types.Message, state: FSMContext):
         await state.set_state(Authorization.waiting_for_code)
 
     except Exception as e:
-        logger.error(f"Ошибка отправки кода на {email}: {e}")
+        logger.error(f"Ошибка отправки кода на {mail}: {e}")
         await messages.answer(
             "⚠️ Не удалось отправить код подтверждения.\n"
             "Попробуйте позже или обратитесь в поддержку."

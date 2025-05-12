@@ -2,8 +2,6 @@ import logging
 from aiogram import F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from glpi.api import GLPIConnection
-from bot.keyboards import main_kb, back_kb, confirm_kb, type_kb
 from bot import dp
 from bot.states import Base
 from services import DBInterface
@@ -11,7 +9,7 @@ from services import DBInterface
 logger = logging.getLogger(__name__)
 
 @dp.message(Command("delete_me"), Base.authorization)
-async def start_ticket_creation(message: types.Message, state: FSMContext):
+async def delete_user(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     try:
         if DBInterface.delete_user(telegram_id=user_id):
