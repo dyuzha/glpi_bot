@@ -76,8 +76,8 @@ def get_user_mail(login):
     except requests.exceptions.Timeout:
         raise LDAPError("Таймаут при подключении к серверу") from None
 
-    except requests.exceptions.RequestException as e:
-        raise LDAPError() from e
+    # except requests.exceptions.RequestException as e:
+    #     raise LDAPError() from e
 
     except (ValueError, KeyError) as e:
         raise ValueError(f"Ошибка при обработке ответа сервера: {str(e)}") from e
