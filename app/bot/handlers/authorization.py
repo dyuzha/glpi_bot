@@ -108,7 +108,7 @@ async def handle_login(messages: types.Message, state: FSMContext):
 async def send_code(messages: types.Message, state: FSMContext):
     """Выполняет отправку кода на email"""
     state_data = await state.get_data()
-    mail = state_data["mail"]
+    mail = state_data["email"]
     try:
         code = await mail_confirmation.send_confirmation_email(mail)
         if code is None:
