@@ -41,6 +41,7 @@ def get_user_mail(login):
                 json=data,
                 timeout=TIMEOUT
                 )
+        logger.debug(f"Raw response text: {response.text}")
 
         # Обраьбатываем HTTP-ошибки
         if response.status_code == 404:
