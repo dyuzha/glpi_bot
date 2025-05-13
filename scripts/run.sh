@@ -10,6 +10,7 @@ fi
 # Переменные для путей
 SETTINGS_PATH="$CONFIGS/settings.ini"
 LOGGING_CONFIG="$CONFIGS/logging_config.json"
+MAIL_CONFIG = "$CONFIGS/mail_config.ini"
 
 #Проверка существования файлов
 if [ ! -f "$SETTINGS_PATH" ]; then
@@ -35,6 +36,9 @@ docker run -d \
   -e GLPI_TG_SETTINGS_CONF="/glpi_bot/settings.ini" \
   -v "${LOGGING_CONFIG}:/glpi_bot/logging_config.json" \
   -e GLPI_TG_LOG_CONF="/glpi_bot/logging_config.json" \
+  -v "${MAIL_CONFIG}:/glpi_bot/mail_config.ini" \
+  -e GLPI_TG_MAIL_CONFIG="/glpi_bot/mail_config.ini" \
   --name gbc \
   glpi_bot
 # Для интерактивного режима замените `-d` на `-it`
+
