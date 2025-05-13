@@ -10,7 +10,7 @@ fi
 # Переменные для путей
 SETTINGS_PATH="$CONFIGS/settings.ini"
 LOGGING_CONFIG="$CONFIGS/logging_config.json"
-MAIL_CONFIG = "$CONFIGS/mail_config.ini"
+MAIL_CONFIG="$CONFIGS/mail_config.ini"
 
 #Проверка существования файлов
 if [ ! -f "$SETTINGS_PATH" ]; then
