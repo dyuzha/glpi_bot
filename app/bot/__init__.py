@@ -15,7 +15,11 @@ bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(
     parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
+# Регистрируем обработчики
 from .handlers import *
+
+# Регистрируем меню бота
+from .menu import set_bot_commands
 
 # Регистрируем middleware
 # dp.update.middleware(AuthMiddleware())
