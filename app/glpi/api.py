@@ -39,6 +39,7 @@ class GLPIConnection:
         return True
 
     def _force_kill_previous_session(self):
+        """Убивает прошлые сессии"""
         try:
             if hasattr(self, 'session_token'):
                 requests.get(
@@ -167,4 +168,17 @@ class GLPIService:
         # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
         pass
 
+    def get_id_user(self, login: str):
+        """Получить id пользователя по логину"""
+        data = [
+                {"searchText": f"[{login}]",
+                "searchOption": "1"}
+            ]
+        # data = {
+        #     "input": {
+        #         "searchText": f"[{login}]",
+        #         "searchOption": "1"
+        #     }
+        # }
 
+        return self.conn.make_request("POST", "User", json_data=data)

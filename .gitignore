@@ -13,3 +13,6 @@ __pycache__
 # БД
 users.db
 
+# Системные
+*.egg-info
+
