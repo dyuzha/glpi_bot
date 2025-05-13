@@ -8,8 +8,10 @@ from services import DBInterface
 
 logger = logging.getLogger(__name__)
 
-@dp.message(Command("delete_me"), Base.authorization)
+@dp.message(Command("delete_me"))
 async def delete_user(message: types.Message, state: FSMContext):
+    """Удаляет пользователя из базы данных"""
+    await state.clear()
     user_id = message.from_user.id
     try:
         if DBInterface.delete_user(telegram_id=user_id):
@@ -22,5 +24,3 @@ async def delete_user(message: types.Message, state: FSMContext):
         await message.answer(
         f"Ошибка при попытку удаления пользователя {user_id}: {e}"
         )
-    finally:
-        await state.clear()
