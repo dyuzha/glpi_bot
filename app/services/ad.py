@@ -51,7 +51,6 @@ def get_user_mail(login):
 
         # Обраьбатываем HTTP-ошибки
         if response.status_code == 404:
-
             raise LDAPUserNotFound(f"Пользователь {login} не найден")
 
         # Генерируем исключения для HTTP-ошибок
@@ -82,5 +81,5 @@ def get_user_mail(login):
     # except requests.exceptions.RequestException as e:
     #     raise LDAPError() from e
 
-    except (ValueError, KeyError) as e:
-        raise ValueError(f"Ошибка при обработке ответа сервера: {str(e)}") from e
+    # except (ValueError, KeyError) as e:
+    #     raise ValueError(f"Ошибка при обработке ответа сервера: {str(e)}") from e

@@ -15,6 +15,7 @@ class TicketCreation(StatesGroup):
     confirm_data = State()
 
 class Authorization(StatesGroup):
+    get_authorization = State()
     waiting_for_login = State()
     change_login = State()
     waiting_for_code = State()

@@ -1,4 +1,5 @@
 import aiosmtplib
+import ssl
 from email.mime.text import MIMEText
 import random
 import string
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class EmailConfirmation():
     """Класс для подтверждения email"""
-    subject = "Код подтверждения авторизации в Telegram-боте **ПРОФИТ**"
+    subject = "Код подтверждения авторизации в Telegram-боте ПРОФИТ"
     body = """
         Здравствуйте,\n
         Ваш код подтверждения для телеграмм-бота: {}\n
@@ -24,7 +25,7 @@ class EmailConfirmation():
         self.smtp_password = mail_data['smtp_password']
         self.use_tls = mail_data['use_tls']
 
-    def generate_confirmation_code(self, length=8) -> str:
+    def generate_confirmation_code(self, length=4) -> str:
         """Генерация случайного кода подтверждения"""
         characters = string.digits  # Используем только цифры
         return ''.join(random.choice(characters) for _ in range(length))
@@ -37,10 +38,15 @@ class EmailConfirmation():
         msg['To'] = email_to
         return msg
 
-    async def send_confirmation_email(self, email_to: str) -> Optional[str]:
+    async def send_confirmation_email(self, email_to: str, length=4) -> Optional[str]:
         """Асинхронная отправка письма с кодом подтверждения"""
-        code = self.generate_confirmation_code()
+        code = self.generate_confirmation_code(length=length)
+        logger.debug(f"Сгенерирован код подтверждения: <{code}>")
         msg = self._build_confirm_mail(code, email_to)
+        logger.debug(f"Собранно письмо для отправки:")
+
+        # Выключает проверку TLS
+        context = ssl._create_unverified_context()
 
         try:
             logger.debug("Подключение к SMTP серверу")
@@ -48,8 +54,8 @@ class EmailConfirmation():
             async with aiosmtplib.SMTP(
                 hostname=self.smtp_server,
                 port=self.smtp_port,
-                use_tls=self.use_tls
-                # use_tls=False
+                use_tls=self.use_tls,
+                tls_context=context,
             ) as server:
                 try:
                     await server.login(self.smtp_username, self.smtp_password)

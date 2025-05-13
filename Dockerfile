@@ -35,3 +35,4 @@ RUN chmod +x scripts/*.sh
 
 # Запускаем приложение
 CMD ["python", "./app/main.py"]
+# CMD ["python", "./app/test_mail.py"]

@@ -43,3 +43,11 @@ def auth_kb():
         ],
         resize_keyboard=True
     )
+
+def login_repeat():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Ввести логин повторно")],
+        ],
+        resize_keyboard=True
+    )

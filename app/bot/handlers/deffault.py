@@ -20,20 +20,29 @@ AUTH_REQUIRED_MESSAGE = (
     "(н-р: <code>ivanov_ii</code>):"
 )
 
-@dp.message(StateFilter(None))
-async def handle_first_message(message: types.Message, state: FSMContext):
-    await cmd_start( message, state)
-
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, state: FSMContext):
+    # Отправляем приветсвенное сообщение
+    await message.answer(START_MESSAGE)
+    # Вручную вызываем следующий обработчик
+    await cmd_begin(message, state)
+
+
+@dp.message(StateFilter(None))
+async def handle_first_message(message: types.Message, state: FSMContext):
+    await cmd_begin( message, state)
+
+
+@dp.message(Command("begin"))
+async def cmd_begin(message: types.Message, state: FSMContext):
     try:
         user_id = message.from_user.id
         logger.info(f"User {user_id} started bot")
 
         # Отправляем приветсвенное сообщение
-        await message.answer(START_MESSAGE)
+        # await message.answer(START_MESSAGE)
 
-        # Получаем логин из БД с обработкой ошибок
+        # Получаем логин из БД
         try:
             login = DBInterface.get_login(telegram_id=user_id)
         except Exception as e:
@@ -41,6 +50,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
             await message.answer("Произошла ошибка при проверке авторизации. Попробуйте позже.")
             return
 
+        # Если пользователь не найден, отправляем на регистрацию
         if login is None:
             await message.answer(
                 AUTH_REQUIRED_MESSAGE, parse_mode="HTML",
@@ -49,6 +59,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
             logger.info(f"User {user_id} needs authorization")
             await state.set_state(Authorization.waiting_for_login)
 
+        # Иначе перенаправляем на составление заявки
         else:
             logger.info(f"User {user_id} already authorized as {login}")
             await message.answer(
