@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 @dp.message(F.text == "Создать заявку", Base.authorization)
 async def start_ticket_creation(message: types.Message, state: FSMContext):
     """Выбрать Инцидент/Запрос"""
+    logger.debug(f"Переход в главное меню")
+
     await message.answer(
         "Выберите тип заявки:\n\n"
         "🐛 <b>Инцидент</b> — если что-то сломалось\n"
@@ -26,6 +28,9 @@ async def start_ticket_creation(message: types.Message, state: FSMContext):
 @dp.message(TicketCreation.waiting_for_type)
 async def start_ticket_build(message: types.Message, state: FSMContext):
     """Обработка выбора типа заявки и переход к вводу заголовка"""
+    logger.debug("Переход к выбору типа заявки")
+
+    # Сделать match/case
     if message.text == "🔙 Назад":
         await message.answer("Вы вернулись в главное меню", reply_markup=main_kb())
         await state.clear()
@@ -38,15 +43,19 @@ async def start_ticket_build(message: types.Message, state: FSMContext):
     # Определяем тип заявки
     type_ticket = None
     if message.text == "Инцидент":
+        logger.debug("Выбран пункт Инцидент")
         type_ticket = 1
     elif message.text == "Запрос":
+        logger.debug("Выбран пункт Запрос")
         type_ticket = 2
     else:
         await message.answer("Пожалуйста, выберите тип заявки кнопками ниже:")
+        logger.debug(f"Некорректный ввод: {message.text}")
         return  # Не переходим к следующему шагу при некорректном вводе
 
     # Сохраняем тип заявки в состоянии
     await state.update_data(type=type_ticket)
+    logger.debug(f"Тип заявки сохранен в состоянии {type_ticket}")
     await message.answer(
         "📝 Введите краткий заголовок заявки (например: 'Проблема с принтером'):",
         reply_markup=back_kb()
@@ -57,8 +66,11 @@ async def start_ticket_build(message: types.Message, state: FSMContext):
 @dp.message(TicketCreation.waiting_for_title)
 async def process_title(message: types.Message, state: FSMContext):
     """Обработка заголовка и запрос описания"""
+    logger.debug("Переход созданию заголовка")
+
     if message.text == "🔙 Назад":
         await message.answer("Вы вернулись к выбору типа заявки", reply_markup=type_kb())
+        logger.debug("Переход на шаг назад (Выбор типа заявки)")
         await state.clear()
         return
 
@@ -67,10 +79,12 @@ async def process_title(message: types.Message, state: FSMContext):
         return
 
     if len(message.text) < 5:
+        logger.debug(f"Некорректный ввод {message.text}")
         await message.answer("❌ Заголовок должен содержать минимум 5 символов. Попробуйте еще раз:")
         return
 
     await state.update_data(title=message.text)
+    logger.debug(f"Заголовок заявки сохранен в состоянии {message.text}")
     await message.answer(
         "✏️ Теперь подробно опишите проблему:\n\n"
         "• Что произошло?\n"
@@ -88,8 +102,11 @@ async def process_title(message: types.Message, state: FSMContext):
 @dp.message(TicketCreation.waiting_for_description)
 async def process_description(message: types.Message, state: FSMContext):
     """Обработка описания и создание заявки в GLPI"""
+    logger.debug("Переход созданию описания")
+
     if message.text == "🔙 Назад":
         data = await state.get_data()
+        logger.debug("Переход на шаг назад (Составление описания)")
         await message.answer(
             f"Редактируем заголовок.\nТекущий: {data['title']}\n"
             "Введите новый заголовок:",
@@ -104,10 +121,12 @@ async def process_description(message: types.Message, state: FSMContext):
 
     if len(message.text) < 10:
         await message.answer("❌ Описание должно содержать минимум 10 символов. Пожалуйста, опишите подробнее:")
+        logger.debug(f"Некорректный ввод {message.text}")
         return
 
     # Сохраняем данные в кеш
     await state.update_data(description=message.text)
+    logger.debug(f"Описание заявки сохранено в состоянии {message.text}")
     # Забираем данные в виде словаря
     data = await state.get_data()
 
@@ -125,7 +144,11 @@ async def process_description(message: types.Message, state: FSMContext):
 # Обработка подтверждения
 @dp.message(TicketCreation.confirm_data)
 async def confirm_ticket(message: types.Message, state: FSMContext):
-    if message.text == "🔙 Назад": # Тут emoji
+    """Обработка подтверждения"""
+    logger.debug("Переход обработке подтверждения")
+
+    if message.text == "🔙 Назад":
+        logger.debug("Переход на шаг назад (Составление описания)")
         await message.answer(
             "Редактируем описание. Введите новый текст:",
             reply_markup=back_kb()
@@ -139,6 +162,7 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
 
     if message.text == "✅ Подтвердить":
         data = await state.get_data()
+        logger.debug(f"Получение всей информации: {data}")
 
         ticket_data = {
             "input": {
@@ -155,10 +179,13 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
             }
         }
 
+        logger.debug(f"Составление запроса: {ticket_data}")
+
         try:
             # Создаем заявку в GLPI
             with GLPIConnection(**GLPI_CONFIG) as glpi:
                 result = glpi.make_request("POST", "Ticket", json_data=ticket_data)
+                logger.debug(f"Создание заявки вернуло: {result}")
                 await message.answer(
                     f"✅ Заявка успешно создана!\n\n"
                     f"<b>Номер:</b> #{result['id']}\n"
@@ -175,7 +202,9 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
             )
         finally:
             await state.clear()
+            logger.debug(f"Обнуление состояния")
     else:
+        logger.debug(f"Некорректный ввод f{message.text}")
         await message.answer("Пожалуйста, используйте кнопки ниже")
 
 
@@ -190,6 +219,7 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
 async def cancel_creation(message: types.Message, state: FSMContext):
     """Отмена создания заявки"""
     await state.clear()
+    logger.debug("Создание заявки отменено")
     await message.answer(
         "🚫 Создание заявки отменено",
         reply_markup=main_kb()
