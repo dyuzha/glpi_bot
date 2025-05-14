@@ -13,3 +13,7 @@ class LDAPMailNotFound(ValueError):
     def __str__(self):
         return "Mail не найден у данного пользователя"
 
+
+class EntryNotFound(ValueError):
+    def __str__(self):
+        return "Запись не найдена"

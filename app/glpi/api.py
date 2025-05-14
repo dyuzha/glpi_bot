@@ -1,7 +1,10 @@
+# glpi/api.py
+
 import logging
 import requests
 from typing import Optional
 from datetime import datetime, timedelta
+from .models import GLPIUser
 
 logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
 
@@ -168,17 +171,26 @@ class GLPIService:
         # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
         pass
 
-    def get_id_user(self, login: str):
-        """Получить id пользователя по логину"""
-        data = [
-                {"searchText": f"[{login}]",
-                "searchOption": "1"}
-            ]
-        # data = {
-        #     "input": {
-        #         "searchText": f"[{login}]",
-        #         "searchOption": "1"
-        #     }
-        # }
 
-        return self.conn.make_request("POST", "User", json_data=data)
+    def get_user(self, login: str):
+        data = {
+            "criteria": [
+                {
+                    "field": "1",
+                    "searchtype": "contains",
+                    "value": login,
+                    "forcedisplay": "id"
+                },
+            ],
+            "forcedisplay": ["1", "2", "3"]
+        }
+
+        responce = self.conn.make_request("POST", "search/User", json_data=data)
+        if responce['totalcount'] == 0:
+            return None
+
+        users = responce['data']
+        for user in users:
+            if user["1"] == login:
+                return GLPIUser(**user)
+        return None
