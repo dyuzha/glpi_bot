@@ -25,5 +25,5 @@ ticket_data = {
 }
 
 with GLPIConnection(**GLPI_CONFIG) as glpi:
-    response = glpi.make_request("GET", "RequestType")
+    response = glpi._make_request("GET", "RequestType")
     print("Доступные типы запросов:", response)
