@@ -4,5 +4,5 @@ class GLPIUser:
         self.id = kwargs['2']
         self.organisation = kwargs['3']
 
-    def get_id(self):
+    def get_id(self) -> int:
         return self.id

@@ -1,5 +1,5 @@
-from app.config_handlers import GLPI_CONFIG
-from app.glpi import GLPIService
+from glpi_bot.config_handlers import GLPI_CONFIG
+from glpi_bot.glpi import GLPIService
 
 login = "dyuzhev_mn"
 # login = "tgbot"
@@ -9,17 +9,6 @@ with GLPIService(**GLPI_CONFIG) as glpi_service:
     print(glpi_user.get_id())
 
 
-# 0
-# 10 - profit
-# 8 - arcadia
-# 3 - arteh
-# 4 - artehlog
-# 5 -art seti
-# 1 - work
-# 9 - ip haylu
-# 11 - M=pro
-# 6 - nek
-# 2 - sigma
 data = {
     "name": "test_namefff",
     "content": "test_contfff",

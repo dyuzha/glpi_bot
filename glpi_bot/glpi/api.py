@@ -5,6 +5,7 @@ import requests
 from typing import Optional
 from datetime import datetime, timedelta
 from .models import GLPIUser
+from typing import Optional
 
 logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
 
@@ -155,7 +156,7 @@ class GLPIService(GLPIConnection):
         return self._make_request("POST", "Ticket", json_data=ticket_data)
 
 
-    def get_user(self, login: str):
+    def get_user(self, login: str) -> Optional[GLPIUser]:
         """Получение пользователя GLPI"""
         # Использую contains потомучто equals не работает
         data = {
