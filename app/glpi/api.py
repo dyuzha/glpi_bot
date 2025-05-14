@@ -107,7 +107,7 @@ class GLPIConnection:
             self.session_token = None
             self.token_expires = None
 
-    def make_request(self, method: str, endpoint: str, json_data: dict = None):
+    def _make_request(self, method: str, endpoint: str, json_data: dict = None):
         """
         Выполнение запроса к API GLPI
         :param method: HTTP метод (GET, POST, PUT, DELETE)
@@ -146,33 +146,18 @@ class GLPIConnection:
             raise ConnectionError() from e
 
 
-class GLPIService:
-    def __init__(self, connection: GLPIConnection):
-        self.conn = connection
+class GLPIService(GLPIConnection):
+    """Сервис для взаимодействия с GLPI"""
 
-    def create_ticket(self, title: str, description: str, **kwargs) -> dict:
+    def create_ticket(self, **data) -> dict:
         """Расширенное создание заявки с доп. параметрами"""
-        data = {
-            "input": {
-                "name": title,
-                "content": description,
-                **kwargs
-            }
-        }
-        return self.conn.make_request("POST", "Ticket", json_data=data)
-
-    def assign_ticket(self, ticket_id: int, user_id: int):
-        """Назначение заявки на пользователя"""
-        # data = {
-        #     "input": {
-        #         "_users_id_assign": user_id
-        #     }
-        # }
-        # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
-        pass
+        ticket_data = {"input": data}
+        return self._make_request("POST", "Ticket", json_data=ticket_data)
 
 
     def get_user(self, login: str):
+        """Получение пользователя GLPI"""
+        # Использую contains потомучто equals не работает
         data = {
             "criteria": [
                 {
@@ -185,12 +170,42 @@ class GLPIService:
             "forcedisplay": ["1", "2", "3"]
         }
 
-        responce = self.conn.make_request("POST", "search/User", json_data=data)
+        responce = self._make_request("POST", "search/User", json_data=data)
         if responce['totalcount'] == 0:
             return None
 
+        # Отфильтровываю вывод до полного совпадения (костыль)
         users = responce['data']
         for user in users:
             if user["1"] == login:
                 return GLPIUser(**user)
         return None
+
+
+    def assign_ticket(self, ticket_id: int, user_id: int):
+        """Назначение заявки на пользователя"""
+        # data = {
+        #     "input": {
+        #         "_users_id_assign": user_id
+        #     }
+        # }
+        # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
+        pass
+
+"""
+
+        ticket_data = {
+            "input": {
+                "name": title,
+                "content": description,
+                "type": type_ticket,
+                # "urgency": 3, # Срочность (1-5)
+                # "impact": 3, # Влияние (1-5)
+                # "priority": 3, # Приоритет (1-5)
+                "requesttypes_id": 2, # Источник запроса
+                "itilcategories_id": 14, # ID Категории,
+                "_users_id_requester": 291, # ID пользователя-заявителя
+                "entities_id": 0  # ID организации (0 для корневой)
+            }
+        }
+"""

@@ -158,7 +158,7 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
         try:
             # Создаем заявку в GLPI
             with GLPIConnection(**GLPI_CONFIG) as glpi:
-                result = glpi.make_request("POST", "Ticket", json_data=ticket_data)
+                result = glpi._make_request("POST", "Ticket", json_data=ticket_data)
                 await message.answer(
                     f"✅ Заявка успешно создана!\n\n"
                     f"<b>Номер:</b> #{result['id']}\n"

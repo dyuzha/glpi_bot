@@ -1,39 +1,42 @@
 from app.config_handlers import GLPI_CONFIG
-from app.glpi import GLPIConnection, GLPIService
+from app.glpi import GLPIService
 
-# login = "dyuzhev_mn"
-login = "tgbot"
+login = "dyuzhev_mn"
+# login = "tgbot"
 
-with GLPIConnection(**GLPI_CONFIG) as glpi:
-    glpi_service = GLPIService(glpi)
+with GLPIService(**GLPI_CONFIG) as glpi_service:
     glpi_user = glpi_service.get_user(login)
-
-print(glpi_user.get_id())
-
+    print(glpi_user.get_id())
 
 
-ticket_data = {
-    "input": {
-        "name": "test_name",
-        "content": "test_cont",
-        "type": "1", # 1 для инцидента, 2 для запроса
-        # "urgency": 3, # Срочность (1-5)
-        # "impact": 3, # Влияние (1-5)
-        # "priority": 3, # Приоритет (1-5)
-        "requesttypes_id": 2, # Источник запроса
-        # "itilcategories_id": 1, ID Категории,
-        "_users_id_requester": 291, # ID пользователя-заявителя
-        "entities_id": 10  # ID организации (0 для корневой)
-    }
+# 0
+# 10 - profit
+# 8 - arcadia
+# 3 - arteh
+# 4 - artehlog
+# 5 -art seti
+# 1 - work
+# 9 - ip haylu
+# 11 - M=pro
+# 6 - nek
+# 2 - sigma
+data = {
+    "name": "test_namefff",
+    "content": "test_contfff",
+    "type": "1", # 1 для инцидента, 2 для запроса
+    # "urgency": 3, # Срочность (1-5)
+    # "impact": 3, # Влияние (1-5)
+    # "priority": 3, # Приоритет (1-5)
+    "requesttypes_id": 9, # Источник запроса
+    "itilcategories_id": 14, # ID Категории,
+    "_users_id_requester": glpi_user.get_id(), # ID пользователя-заявителя
+    "entities_id": 0  # ID организации (0 для корневой)
 }
 
-
-
-
-
 # Создаем заявку в GLPI
-with GLPIConnection(**GLPI_CONFIG) as glpi:
-    result = glpi.make_request("POST", "Ticket", json_data=ticket_data)
+with GLPIService(**GLPI_CONFIG) as glpi_service:
+    # result = glpi_service.make_request("POST", "Ticket", json_data=ticket_data)
+    result = glpi_service.create_ticket(**data)
     print(result)
 
 """
