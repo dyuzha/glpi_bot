@@ -35,8 +35,8 @@ class GLPIConnection:
         """Закрытие сессии при выходе из контекста"""
         self._close_session()
         if exc_type is not None:
-            print(f"Произошла ошибка: {exc_val}")
-        return True
+            logger.warning(f"Произошла ошибка: {exc_val}")
+        return False
 
     def _force_kill_previous_session(self):
         try:
