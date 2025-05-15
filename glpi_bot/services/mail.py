@@ -6,6 +6,7 @@ import string
 from config_handlers import MAIL_DATA
 from typing import Optional
 import logging
+import certifi
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,18 @@ class EmailConfirmation():
         msg = self._build_confirm_mail(code, email_to)
         logger.debug(f"Собранно письмо для отправки:")
 
-        # Выключает проверку TLS
-        context = ssl._create_unverified_context()
+
+        # Настройка SSL контекста
+        context = ssl.create_default_context()
+        try:
+            # Пытаемся использовать системные сертификаты
+            context.load_default_certs()
+        except:
+            # Fallback на certifi если системные недоступны
+            context = ssl.create_default_context(cafile=certifi.where())
+
+        # Выключает проверку TLS (Для тестов, если на хосте нет корневых certs)
+        # context = ssl._create_unverified_context()
 
         try:
             logger.debug("Подключение к SMTP серверу")

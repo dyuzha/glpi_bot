@@ -1,4 +1,6 @@
-FROM python:3.9-slim
+FROM python:3.9-slim AS builder
+
+WORKDIR /glpi_bot
 
 LABEL maintainer="Dyuzhev Matvey"
 
@@ -18,20 +20,37 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
     # Создаем символическую ссылку для глобального доступа
     ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
-# Сначала копируем только файлы зависимостей
+# Устанавливаем плагин poetry
+RUN poetry self add poetry-plugin-export
+
+# Сначала копируем только файлы зависимостей (Для кеширования)
+WORKDIR /glpi_bot
+COPY ./pyproject.toml ./poetry.lock ./
+
+# Генерируем requirements.txt с разделением dev и prod
+RUN poetry export --without-hashes --only=main --no-interaction -f requirements.txt -o requirements.txt
+RUN poetry export --without-hashes --only=dev --no-interaction -f requirements.txt -o requirements-dev.txt
+
+
+FROM python:3.10-slim AS production
+
 # Установка корневых сертификатов
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
 # Копируем дополнительные сертификаты (если есть)
 # COPY ./certs/*.crt /usr/local/share/ca-certificates/
 
 # Обновление сертификатов
-# RUN update-ca-certificates
-WORKDIR /glpi_bot
-COPY ./app/pyproject.toml ./app/poetry.lock ./
+RUN update-ca-certificates
+RUN pip install certifi
 
-# Устанавливаем зависимости проекта
-RUN poetry config virtualenvs.create false && \
-    poetry install --no-interaction --no-ansi --no-root
+
+
+WORKDIR /glpi_bot
+
+# Устанавливаем зависимости
+COPY --from=builder /glpi_bot/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем остальные файлы приложения
 COPY . .
@@ -41,5 +60,4 @@ COPY ./scripts ./scripts
 RUN chmod +x scripts/*.sh
 
 # Запускаем приложение
-CMD ["python", "./app/main.py"]
-# CMD ["python", "./app/test_mail.py"]
+CMD ["python", "./glpi_bot/main.py"]
