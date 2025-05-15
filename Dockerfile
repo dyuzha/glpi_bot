@@ -19,6 +19,13 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
     ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
 # Сначала копируем только файлы зависимостей
+# Установка корневых сертификатов
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Копируем дополнительные сертификаты (если есть)
+# COPY ./certs/*.crt /usr/local/share/ca-certificates/
+
+# Обновление сертификатов
+# RUN update-ca-certificates
 WORKDIR /glpi_bot
 COPY ./app/pyproject.toml ./app/poetry.lock ./
 
