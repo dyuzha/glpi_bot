@@ -36,7 +36,8 @@ class GLPIConnection:
         self._close_session()
         if exc_type is not None:
             logger.warning(f"Произошла ошибка: {exc_val}")
-        return False
+            raise exc_type
+        return True
 
     def _force_kill_previous_session(self):
         try:
