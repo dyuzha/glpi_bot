@@ -6,7 +6,7 @@ from glpi.models import TicketBuilder
 from bot.keyboards import main_kb, back_kb, confirm_kb, type_kb
 from bot import dp
 from bot.states import TicketCreation, Base
-from config_handlers import GLPI_CONFIG
+from config_handlers import GLPI_DATA
 
 
 logger = logging.getLogger(__name__)
@@ -182,7 +182,7 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
 
         try:
             # Создаем заявку в GLPI
-            with TicketBuilder(**GLPI_CONFIG) as glpi:
+            with TicketBuilder(**GLPI_DATA) as glpi:
                 result = glpi.create_ticket(**ticket_data)
                 logger.debug(f"Создание заявки вернуло: {result}")
                 await message.answer(

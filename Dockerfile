@@ -59,5 +59,16 @@ COPY . .
 COPY ./scripts ./scripts
 RUN chmod +x scripts/*.sh
 
+# Создаем папку для конфигов
+RUN mkdir -p /configs
+
+# Указываем том для монтирования конфигов
+VOLUME /configs
+
+# Устанавливаем переменные окружения для конфигов
+ENV GLPI_TG_LOG_CONF=/configs/logging_config.json
+ENV GLPI_TG_MAIL_CONF=/configs/mail_config.ini
+ENV GLPI_TG_SETTINGS=/configs/settings.ini
+
 # Запускаем приложение
 CMD ["python", "./glpi_bot/main.py"]

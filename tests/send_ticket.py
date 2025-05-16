@@ -1,5 +1,5 @@
 from glpi_bot.glpi.models import TicketBuilder
-from glpi_bot.config_handlers import GLPI_CONFIG
+from glpi_bot.config_handlers import GLPI_DATA
 
 
 ticket_data = {
@@ -18,7 +18,7 @@ ticket_data = {
 
 
 # Создаем заявку в GLPI
-with TicketBuilder(**GLPI_CONFIG) as glpi:
+with TicketBuilder(**GLPI_DATA) as glpi:
     result = glpi.create_ticket(**ticket_data)
     print(result)
 

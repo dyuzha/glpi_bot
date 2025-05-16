@@ -1,6 +1,6 @@
 # Конфиги
+configs/*
 settings.ini
-ad_config.ini
 logging_config.json
 mail_config.ini
 

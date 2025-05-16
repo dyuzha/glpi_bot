@@ -5,8 +5,10 @@ from pathlib import Path
 from os import environ
 
 
-LOG_CONF = environ.get('GLPI_TG_LOG_CONF') or \
-    "logging_config.json"
+CONFIG_DIR = environ.get('GLPI_TG_CONFIG_DIR', '/configs')
+LOG_CONF_FILE = environ.get('GLPI_TG_LOG_CONF', 'logging_config.json')
+LOG_CONF = str(Path(CONFIG_DIR) / LOG_CONF_FILE)
+
 
 def setup_logging():
     """Инициализация системы логирования"""
