@@ -194,7 +194,7 @@ async def handle_code(message: types.Message, state: FSMContext):
         DBInterface.save_user(telegram_id=message.from_user.id, login=state_data['login'])
         login = state_data["login"]
         await state.clear()
-        await state.update_data(login="login")
+        await state.update_data(login=login)
         await state.set_state(Base.authorization)
 
 

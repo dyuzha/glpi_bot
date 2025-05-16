@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 async def start_ticket_creation(message: types.Message, state: FSMContext):
     """Выбрать Инцидент/Запрос"""
     logger.debug(f"Переход в главное меню")
+    data = await state.get_data()
+    logger.debug(f"Данные в кеше: {data}")
 
     await message.answer(
         "Выберите тип заявки:\n\n"
