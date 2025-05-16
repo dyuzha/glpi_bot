@@ -66,6 +66,7 @@ async def cmd_begin(message: types.Message, state: FSMContext):
                 "Воспользуйся кнопками ниже, для взаимодействия с ботом",
                 reply_markup=main_kb()
             )
+            await state.update_data(login=login)
             await state.set_state(Base.authorization)
 
     except Exception as e:

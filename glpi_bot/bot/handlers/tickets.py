@@ -2,7 +2,7 @@ import logging
 from aiogram import F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from glpi.api import GLPIConnection
+from glpi.models import TicketBuilder
 from bot.keyboards import main_kb, back_kb, confirm_kb, type_kb
 from bot import dp
 from bot.states import TicketCreation, Base
@@ -165,26 +165,25 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
         logger.debug(f"Получение всей информации: {data}")
 
         ticket_data = {
-            "input": {
+                "login": data["login"],
                 "name": data['title'],
                 "content": data['description'],
                 "type": data['type'], # 1 для инцидента, 2 для запроса
                 # "urgency": 3, # Срочность (1-5)
                 # "impact": 3, # Влияние (1-5)
                 # "priority": 3, # Приоритет (1-5)
-                "requesttypes_id": 1, # Источник запроса
+                # "requesttypes_id": 1, # Источник запроса
                 # "itilcategories_id": 1, ID Категории,
-                "_users_id_requester": 291, # ID пользователя-заявителя
-                "entities_id": 10  # ID организации (0 для корневой)
+                # "_users_id_requester": 291, # ID пользователя-заявителя
+                # "entities_id": 10  # ID организации (0 для корневой)
             }
-        }
 
         logger.debug(f"Составление запроса: {ticket_data}")
 
         try:
             # Создаем заявку в GLPI
-            with GLPIConnection(**GLPI_CONFIG) as glpi:
-                result = glpi.make_request("POST", "Ticket", json_data=ticket_data)
+            with TicketBuilder(**GLPI_CONFIG) as glpi:
+                result = glpi.create_ticket(**ticket_data)
                 logger.debug(f"Создание заявки вернуло: {result}")
                 await message.answer(
                     f"✅ Заявка успешно создана!\n\n"

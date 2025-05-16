@@ -1,9 +1,11 @@
+# glpi/api.py
+
 import logging
 import requests
 from typing import Optional
 from datetime import datetime, timedelta
 
-logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
+logger = logging.getLogger(__name__)
 
 class GLPIConnection:
     """Контекстный менеджер для работы с GLPI API"""
@@ -53,8 +55,6 @@ class GLPIConnection:
         except:
             pass
 
-
-
     def _open_session(self):
         """Установка соединения с GLPI API"""
         try:
@@ -81,7 +81,6 @@ class GLPIConnection:
 
             raise ConnectionError(f"Ошибка подключения к GLPI: {str(e)}") from e
 
-
     def _close_session(self):
         """Закрытие сессии GLPI"""
         if not self.session_token:
@@ -104,7 +103,7 @@ class GLPIConnection:
             self.session_token = None
             self.token_expires = None
 
-    def make_request(self, method: str, endpoint: str, json_data: dict = None):
+    def _make_request(self, method: str, endpoint: str, json_data: dict = None):
         """
         Выполнение запроса к API GLPI
         :param method: HTTP метод (GET, POST, PUT, DELETE)
@@ -141,31 +140,3 @@ class GLPIConnection:
             error_msg = f"Ошибка API запроса: {str(e)}"
             logger.error(error_msg)
             raise ConnectionError() from e
-
-
-class GLPIService:
-    def __init__(self, connection: GLPIConnection):
-        self.conn = connection
-
-    def create_ticket(self, title: str, description: str, **kwargs) -> dict:
-        """Расширенное создание заявки с доп. параметрами"""
-        data = {
-            "input": {
-                "name": title,
-                "content": description,
-                **kwargs
-            }
-        }
-        return self.conn.make_request("POST", "Ticket", json_data=data)
-
-    def assign_ticket(self, ticket_id: int, user_id: int):
-        """Назначение заявки на пользователя"""
-        # data = {
-        #     "input": {
-        #         "_users_id_assign": user_id
-        #     }
-        # }
-        # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
-        pass
-
-
