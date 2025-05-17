@@ -1,27 +1,31 @@
 #!/bin/bash
 
 # Проверяем суествование переменной с путем к файлам
-if [ -z "${CONFIGS}" ]; then
-    echo "Переменная CONFIGS не определена или пустая"
+if [ -z "${GLPI_TG_CONFIG_DIR}" ]; then
+    echo "Переменная GLPI_TG_CONFIG_DIR не определена или пустая"
     exit 1
 fi
 
-
 # Переменные для путей
-SETTINGS_PATH="$CONFIGS/settings.ini"
-LOGGING_CONFIG="$CONFIGS/logging_config.json"
-MAIL_CONFIG="$CONFIGS/mail_config.ini"
+SETTINGS_PATH="${GLPI_TG_CONFIG_DIR}/settings.ini"
+LOGGING_CONFIG="${GLPI_TG_CONFIG_DIR}/logging_config.json"
+MAIL_CONFIG="${GLPI_TG_CONFIG_DIR}/mail_config.ini"
 
 #Проверка существования файлов
 if [ ! -f "$SETTINGS_PATH" ]; then
   echo "Файл $SETTINGS_PATH не найден."
   exit 1
 fi
+
 if [ ! -f "$LOGGING_CONFIG" ]; then
   echo "Файл $LOGGING_CONFIG не найден."
   exit 1
 fi
 
+if [ ! -f "$MAIL_CONFIG" ]; then
+  echo "Файл $LOGGING_CONFIG не найден."
+  exit 1
+fi
 
 # Проверяем существование образа
 if ! docker image inspect glpi_bot >/dev/null 2>&1; then
@@ -32,13 +36,8 @@ fi
 
 # Запуск контейнера
 docker run -d \
-  -v "${SETTINGS_PATH}:/glpi_bot/settings.ini" \
-  -e GLPI_TG_SETTINGS_CONF="/glpi_bot/settings.ini" \
-  -v "${LOGGING_CONFIG}:/glpi_bot/logging_config.json" \
-  -e GLPI_TG_LOG_CONF="/glpi_bot/logging_config.json" \
-  -v "${MAIL_CONFIG}:/glpi_bot/mail_config.ini" \
-  -e GLPI_TG_MAIL_CONFIG="/glpi_bot/mail_config.ini" \
+  -v "${GLPI_TG_CONFIG_DIR}:/configs" \
   --name gbc \
   glpi_bot
-# Для интерактивного режима замените `-d` на `-it`
 
+# Для интерактивного режима замените `-d` на `-it`
