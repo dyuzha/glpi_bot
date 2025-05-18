@@ -228,7 +228,7 @@ async def code_handler(message: types.Message, state: FSMContext):
     await success_handler(message, state)
 
 
-@dp.message(AuthStates.CODE_HANDLE R, F.text == "Изменить логин")
+@dp.message(AuthStates.CODE_HANDLER, F.text == "Изменить логин")
 async def invalid_login_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Обработка нестандартного ответа")
     """Обработка нестандартного сообщения при вводе логина"""
