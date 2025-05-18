@@ -45,6 +45,13 @@ class TimeHandler:
             return False
         return True
 
+    def set_blocked_until(self):
+        self.blocked_until = datetime.now() + timedelta(seconds=self.timeout_after_limit)
+        self.attempts = 0
+        return self.blocked_until
+
+
+
     def reset(self):
         """Сброс всех ограничений (после успешного действия)"""
         self.attempts = 0

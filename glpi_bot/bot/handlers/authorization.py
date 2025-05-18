@@ -201,35 +201,34 @@ async def code_handler(message: types.Message, state: FSMContext):
         return
 
     # Проверка на наличие блокировки
-    if auth_state.code_handler.get_remaining_time() == 0:
-        if not auth_state.code_handler.add_attempt():
-            remaining = auth_state.code_handler.get_remaining_time()
-            await message.answer(
-                f"Превышено количество попыток. Попробуйте через {remaining} секунд",
-                reply_markup=auth_code_kb()
-            )
+    if auth_state.code_handler.get_remaining_time() != 0:
+        # Проверка на оставшиеся попытки
+        # if not auth_state.code_handler.add_attempt():
+        remaining = auth_state.code_handler.get_remaining_time()
+        await message.answer(
+            f"Превышено количество попыток. Попробуйте через {remaining} секунд",
+            reply_markup=auth_code_kb()
+        )
         return
+
+    auth_state.code_handler.add_attempt()
 
     # Обработка неправильного кода
     if message.text != auth_state.code:
         logger.debug(f"Неудачная попытка ввода кода: {message.text}")
+        await message.answer(f"❌ Неверный код подтверждения")
 
-        # Если закончились попытки
-        if auth_state.code_handler.get_remaining_time() != 0:
-            remaining = auth_state.code_handler.get_remaining_time()
-            await message.answer(f"❌ Неверный код подтверждения. \
-Превышено количество попыток. Попробуйте через {remaining} секунд",
-               reply_markup=auth_code_kb()
-            )
-            return
+        # Подсчет оставшихся попыток
+        remaining_attempts = auth_state.code_handler.max_attempts - auth_state.code_handler.attempts
+        logger.debug(f"Осталось попыток {remaining_attempts}")
+        await message.answer(f"Осталось попыток: {remaining_attempts}")
 
-        attempts_left = auth_state.code_handler.max_attempts - auth_state.code_handler.attempts
+        # Выставление блокировки, если попытки закончились
+        if remaining_attempts == 0:
+            remaining_time = auth_state.code_handler.set_blocked_until()
+            logger.debug(f"Выставлена блокировка на {remaining_time} секунд")
+            await message.answer(f"Попробуйте через {remaining_time} секунд")
 
-        # Если попытки еще остались
-        await message.answer(f"❌ Неверный код подтверждения. \
-Осталось попыток: {attempts_left}/{auth_state.code_handler.max_attempts}",
-            reply_markup=auth_code_kb()
-        )
         return
 
     logger.debug(f"Успешная авторизация")
