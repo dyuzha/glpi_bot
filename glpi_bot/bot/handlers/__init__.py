@@ -4,7 +4,8 @@ from bot.states import TicketCreation, Authorization, Base
 
 
 from .deffault import (
-    cmd_start
+    cmd_start,
+    cmd_begin
 
 )
 from .tickets import (

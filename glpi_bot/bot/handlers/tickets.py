@@ -11,7 +11,7 @@ from config_handlers import GLPI_DATA
 
 logger = logging.getLogger(__name__)
 
-@dp.message(F.text == "Создать заявку", Base.authorization)
+@dp.message(F.text == "Создать заявку", Base.START_CREATE_TICKET)
 async def start_ticket_creation(message: types.Message, state: FSMContext):
     """Выбрать Инцидент/Запрос"""
     logger.debug(f"Переход в главное меню")
