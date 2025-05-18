@@ -41,6 +41,7 @@ class TimeHandler:
         self.attempts += 1
         if self.attempts >= self.max_attempts:
             self.blocked_until = datetime.now() + timedelta(seconds=self.timeout_after_limit)
+            self.attempts = 1
             return False
         return True
 
