@@ -206,7 +206,7 @@ async def code_handler(message: types.Message, state: FSMContext):
 
 
         # Если закончились попытки
-        if auth_state.code_handler.get_remaining_time() is not None:
+        if not auth_state.code_handler.get_remaining_time():
             remaining = auth_state.code_handler.get_remaining_time()
             await message.answer(f"❌ Неверный код подтверждения. \
 Превышено количество попыток. Попробуйте через {remaining} секунд",
