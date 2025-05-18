@@ -83,7 +83,7 @@ async def process_login(message: types.Message, state: FSMContext):
 
     auth_state.login_handler.last_request_time = datetime.now()
     # await state.update_data(auth_state = auth_state)
-    # await message.answer(f"Введите свой логин для продолжения")
+    await message.answer(f"Введите свой логин для продолжения")
     await state.set_state(AuthStates.LOGIN_HANDLER)
 
 
@@ -92,7 +92,7 @@ async def login_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние LOGIN_HANDLER")
 
     auth_state = await get_auth_state(state)
-    login = auth_state.login
+    login = message.text
     # Полкучение email
     try:
         logger.debug(f"Поиск email для <{login}>")
@@ -187,8 +187,11 @@ async def code_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние CODE_HANDLER")
     auth_state = await get_auth_state(state)
 
+    b = auth_state.add_attempt()
+
     # Проверка не истекло ли время действия кода
     if not auth_state.is_code_valid():
+        logger.debug("Время действия кода истекло")
         await message.answer(
             "⌛️ Время действия кода истекло.\n"
             "Запросите новый код.",
@@ -200,8 +203,9 @@ async def code_handler(message: types.Message, state: FSMContext):
     if message.text != auth_state.code:
         logger.debug(f"Неудачная попытка ввода кода: {message.text}")
 
+
         # Если закончились попытки
-        if not auth_state.code_handler.get_remaining_time():
+        if auth_state.code_handler.get_remaining_time() is not None:
             remaining = auth_state.code_handler.get_remaining_time()
             await message.answer(f"❌ Неверный код подтверждения. \
 Превышено количество попыток. Попробуйте через {remaining} секунд",
