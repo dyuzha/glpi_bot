@@ -101,7 +101,7 @@ async def login_handler(message: types.Message, state: FSMContext):
         )
         return
 
-    auth_state.code_handler.add_attempt()
+    auth_state.login_handler.add_attempt()
     login = message.text
 
     # Полкучение email
