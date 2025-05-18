@@ -189,8 +189,6 @@ async def code_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние CODE_HANDLER")
     auth_state = await get_auth_state(state)
 
-    auth_state.code_handler.add_attempt()
-
     # Проверка не истекло ли время действия кода
     if not auth_state.is_code_valid():
         logger.debug("Время действия кода истекло")
@@ -199,12 +197,22 @@ async def code_handler(message: types.Message, state: FSMContext):
             "Запросите новый код.",
             reply_markup=auth_code_kb()
         )
+        auth_state.reset()
+        return
+
+    # Проверка на наличие блокировки
+    if auth_state.code_handler.get_remaining_time() == 0:
+        if not auth_state.code_handler.add_attempt():
+            remaining = auth_state.code_handler.get_remaining_time()
+            await message.answer(
+                f"Превышено количество попыток. Попробуйте через {remaining} секунд",
+                reply_markup=auth_code_kb()
+            )
         return
 
     # Обработка неправильного кода
     if message.text != auth_state.code:
         logger.debug(f"Неудачная попытка ввода кода: {message.text}")
-
 
         # Если закончились попытки
         if auth_state.code_handler.get_remaining_time() != 0:
