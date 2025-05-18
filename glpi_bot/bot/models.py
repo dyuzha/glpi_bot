@@ -53,7 +53,7 @@ class TimeHandler:
     def get_remaining_time(self) -> int:
         """Оставшееся время блокировки (сек)"""
         if not self.blocked_until:
-            return None
+            return 0
         return max(0, int((self.blocked_until - datetime.now()).total_seconds()))
 
 

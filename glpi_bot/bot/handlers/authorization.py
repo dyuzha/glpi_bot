@@ -83,8 +83,9 @@ async def process_login(message: types.Message, state: FSMContext):
 
     auth_state.login_handler.last_request_time = datetime.now()
     # await state.update_data(auth_state = auth_state)
-    await message.answer(f"Введите свой логин для продолжения")
+    # await message.answer(f"Введите свой логин для продолжения")
     await state.set_state(AuthStates.LOGIN_HANDLER)
+    await login_handler(message, state)
 
 
 @dp.message(AuthStates.LOGIN_HANDLER, F.text != "Изменить логин")
@@ -187,7 +188,7 @@ async def code_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние CODE_HANDLER")
     auth_state = await get_auth_state(state)
 
-    b = auth_state.add_attempt()
+    auth_state.code_handler.add_attempt()
 
     # Проверка не истекло ли время действия кода
     if not auth_state.is_code_valid():
