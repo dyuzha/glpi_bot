@@ -139,6 +139,7 @@ async def login_handler(message: types.Message, state: FSMContext):
     else:
         auth_state.mail = mail
         auth_state.login_handler.reset()
+        auth_state.login = login
         await state.set_state(AuthStates.CODE)
         # Вручную вызываем следующий обработчик
         await process_code(message, state)
@@ -227,7 +228,7 @@ async def code_handler(message: types.Message, state: FSMContext):
     await success_handler(message, state)
 
 
-@dp.message(AuthStates.CODE_HANDLER, F.text == "Изменить логин")
+@dp.message(AuthStates.CODE_HANDLE R, F.text == "Изменить логин")
 async def invalid_login_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Обработка нестандартного ответа")
     """Обработка нестандартного сообщения при вводе логина"""
