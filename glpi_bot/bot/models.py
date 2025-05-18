@@ -50,6 +50,9 @@ class TimeHandler:
         self.attempts = 0
         return self.blocked_until
 
+    @property
+    def remaining_attempts(self) -> int:
+        return self.max_attempts - self.attempts
 
 
     def reset(self):

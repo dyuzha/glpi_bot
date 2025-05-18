@@ -31,7 +31,6 @@ REPEAT_REQUEST=(
 
 USER_NOT_FOUND= (
     "Пользователь с данным логином не найден.\n"
-    "Попробуйте еще раз."
     )
 
 LOGIN_NOT_FOUND=(
@@ -91,9 +90,20 @@ async def process_login(message: types.Message, state: FSMContext):
 @dp.message(AuthStates.LOGIN_HANDLER, F.text != "Изменить логин")
 async def login_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние LOGIN_HANDLER")
-
     auth_state = await get_auth_state(state)
+
+    # Проверка на наличие блокировки
+    if auth_state.login_handler.get_remaining_time() != 0:
+        remaining = auth_state.login_handler.get_remaining_time()
+        await message.answer(
+            f"Превышено количество попыток. Попробуйте через {remaining} секунд",
+            reply_markup=auth_code_kb()
+        )
+        return
+
+    auth_state.code_handler.add_attempt()
     login = message.text
+
     # Полкучение email
     try:
         logger.debug(f"Поиск email для <{login}>")
@@ -111,20 +121,22 @@ async def login_handler(message: types.Message, state: FSMContext):
 
     except LDAPUserNotFound as e:
         logger.warning(f"Error: {e}")
-        await message.answer(USER_NOT_FOUND, reply_markup=auth_login_kb())
-        if not auth_state.login_handler.add_attempt():
-            remaining = auth_state.login_handler.get_remaining_time()
-            await message.answer(f"Неверный логин. Превышено количество попыток.\
-Попробуйте через {remaining} секунд.")
+        await message.answer(
+            USER_NOT_FOUND, reply_markup=types.ReplyKeyboardRemove()
+        )
+        logger.debug(f"Неудачная попытка ввода логина: {message.text}")
 
-            attempts_left = auth_state.login_handler.max_attempts - auth_state.login_handler.attempts
-            attempts = attempts_left / auth_state.login_handler.max_attempts
+        # Подсчет оставшихся попыток
+        remaining_attempts = auth_state.login_handler.remaining_attempts
+        logger.debug(f"Осталось попыток {remaining_attempts}")
+        await message.answer(f"Осталось попыток: {remaining_attempts}")
 
-            await message.answer(
-                "Пользователь с данным логином не найден.\n"
-                "Попробуйте еще раз."
-                f"Осталось попыток: {attempts}", reply_markup=auth_login_kb()
-            )
+        # Выставление блокировки, если попытки закончились
+        if remaining_attempts == 0:
+            remaining_time = auth_state.login_handler.set_blocked_until()
+            logger.debug(f"Выставлена блокировка на {remaining_time} секунд")
+            await message.answer(f"Попробуйте через {remaining_time} секунд")
+        return
 
     except LDAPError as e:
         logger.critical(f"Error: {e}")
@@ -197,13 +209,11 @@ async def code_handler(message: types.Message, state: FSMContext):
             "Запросите новый код.",
             reply_markup=auth_code_kb()
         )
-        auth_state.reset()
+        auth_state.code_handler.reset()
         return
 
     # Проверка на наличие блокировки
     if auth_state.code_handler.get_remaining_time() != 0:
-        # Проверка на оставшиеся попытки
-        # if not auth_state.code_handler.add_attempt():
         remaining = auth_state.code_handler.get_remaining_time()
         await message.answer(
             f"Превышено количество попыток. Попробуйте через {remaining} секунд",
@@ -219,7 +229,7 @@ async def code_handler(message: types.Message, state: FSMContext):
         await message.answer(f"❌ Неверный код подтверждения")
 
         # Подсчет оставшихся попыток
-        remaining_attempts = auth_state.code_handler.max_attempts - auth_state.code_handler.attempts
+        remaining_attempts = auth_state.code_handler.remaining_attempts
         logger.debug(f"Осталось попыток {remaining_attempts}")
         await message.answer(f"Осталось попыток: {remaining_attempts}")
 
@@ -235,22 +245,14 @@ async def code_handler(message: types.Message, state: FSMContext):
     await success_handler(message, state)
 
 
-@dp.message(AuthStates.CODE_HANDLER, F.text == "Изменить логин")
-async def invalid_login_handler(message: types.Message, state: FSMContext):
-    logger.debug(f"Обработка нестандартного ответа")
-    """Обработка нестандартного сообщения при вводе логина"""
-    await message.answer("Введите другой логин")
-    await state.set_state(AuthStates.LOGIN)
-
-
 @dp.message(AuthStates.CODE_HANDLER, F.text)
 async def invalid_code_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Обработка нестандартного ответа")
     """Обработка нестандартного сообщения на запрос кода"""
     match message.text:
         case "Изменить логин":
+            await message.answer("Введите другой логин")
             await state.set_state(AuthStates.LOGIN)
-            await invalid_login_handler(message, state)
 
         case "Отправить код повторно":
             await process_code(message, state)
