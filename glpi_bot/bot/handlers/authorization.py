@@ -2,9 +2,9 @@ import logging
 from aiogram import types, F
 from aiogram.fsm.context import FSMContext
 from bot.keyboards import auth_code_kb,  auth_login_kb, main_kb
-from bot import dp, AuthState, cmd_begin
+from bot import dp, AuthState
 from bot.states import Base, AuthStates
-from glpi_bot.bot.handlers.deffault import cmd_begin
+from .deffault import cmd_begin
 from services import mail_confirmation, DBInterface, get_user_mail
 from datetime import datetime, timedelta
 from services.exceptions import LDAPError, LDAPUserNotFound, LDAPMailNotFound
@@ -68,21 +68,31 @@ async def send_code(mail):
 
 @dp.message(AuthStates.LOGIN, F.text != "Изменить логин")
 async def process_login(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние LOGIN")
     auth_state = await get_auth_state(state)
 
     # проверка временного ограничения на изменения логина
     if not auth_state.login_handler.can_make_request():
         remaining = auth_state.login_handler.get_remaining_time()
         await message.answer(
-            f"⏳ Превышено максимальное число попыток\
-Ввести слогин снова, будет возможно через {remaining} секунд.",
+            "⏳ Превышено максимальное число попыток."
+            f"Ввести логин снова, будет возможно через {remaining} секунд.",
             reply_markup=auth_login_kb()
         )
         return
 
     auth_state.login_handler.last_request_time = datetime.now()
-    login = message.text
+    # await state.update_data(auth_state = auth_state)
+    # await message.answer(f"Введите свой логин для продолжения")
+    await state.set_state(AuthStates.LOGIN_HANDLER)
 
+
+@dp.message(AuthStates.LOGIN_HANDLER, F.text != "Изменить логин")
+async def login_handler(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние LOGIN_HANDLER")
+
+    auth_state = await get_auth_state(state)
+    login = auth_state.login
     # Полкучение email
     try:
         logger.debug(f"Поиск email для <{login}>")
@@ -133,9 +143,9 @@ async def process_login(message: types.Message, state: FSMContext):
         await process_code(message, state)
 
 
-@dp.message(AuthStates.CODE, F.text.func(
-    lambda text: text.isdigit() and len(text) == 4))
+@dp.message(AuthStates.CODE, F.text)
 async def process_code(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние CODE")
     auth_state = await get_auth_state(state)
     mail = auth_state.mail
 
@@ -160,14 +170,22 @@ async def process_code(message: types.Message, state: FSMContext):
         return
 
     else:
+        auth_state.code = code
+        auth_state.code_handler.last_request_time = datetime.now()
         await message.answer(
             f"На <b>{mail}</b> был отправлен 4-значный код авторизации.\n"
             f"⏳ Код действителен в течение 5 минут\n"
             f"Введите его для завершения авторизации:",
             parse_mode="HTML", reply_markup=auth_code_kb(),
         )
+        await state.set_state(AuthStates.CODE_HANDLER)
 
-    auth_state.code_handler.last_request_time = datetime.now()
+
+@dp.message(AuthStates.CODE_HANDLER, F.text.func(
+    lambda text: text.isdigit() and len(text) == 4))
+async def code_handler(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние CODE_HANDLER")
+    auth_state = await get_auth_state(state)
 
     # Проверка не истекло ли время действия кода
     if not auth_state.is_code_valid():
@@ -179,7 +197,8 @@ async def process_code(message: types.Message, state: FSMContext):
         return
 
     # Обработка неправильного кода
-    if message.text != code:
+    if message.text != auth_state.code:
+        logger.debug(f"Неудачная попытка ввода кода: {message.text}")
 
         # Если закончились попытки
         if not auth_state.code_handler.get_remaining_time():
@@ -199,21 +218,26 @@ async def process_code(message: types.Message, state: FSMContext):
         )
         return
 
+    logger.debug(f"Успешная авторизация")
+    await success_handler(message, state)
+
 
 @dp.message(AuthStates.CODE, F.text == "Изменить логин")
-async def login_handler(message: types.Message, state: FSMContext):
+async def invalid_login_handler(message: types.Message, state: FSMContext):
+    logger.debug(f"Обработка нестандартного ответа")
     """Обработка нестандартного сообщения при вводе логина"""
+    await message.answer("Введите другой логин")
     await state.set_state(AuthStates.LOGIN)
-    await process_login(message, state)
 
 
 @dp.message(AuthStates.CODE, F.text)
-async def code_handler(message: types.Message, state: FSMContext):
+async def invalid_code_handler(message: types.Message, state: FSMContext):
+    logger.debug(f"Обработка нестандартного ответа")
     """Обработка нестандартного сообщения на запрос кода"""
     match message.text:
         case "Изменить логин":
             await state.set_state(AuthStates.LOGIN)
-            await process_login(message, state)
+            await invalid_login_handler(message, state)
 
         case "Отправить код повторно":
             await process_code(message, state)
@@ -224,16 +248,16 @@ async def code_handler(message: types.Message, state: FSMContext):
 
 
 @dp.message(AuthStates.SUCCESS, F.text)
-async def saccess_handler(message: types.Message, state: FSMContext):
-    state_data = get_auth_state(state)
+async def success_handler(message: types.Message, state: FSMContext):
+    auth_state = await get_auth_state(state)
     await message.answer("✅ Авторизация успешно завершена!", reply_markup=main_kb())
     try:
         DBInterface.save_user(
             telegram_id=message.from_user.id,
-            login=state_data.login
+            login=auth_state.login
         )
         logger.info(f"Добавлен новый пользоватьель в базу данных: \n\
-tg_id: {message.from_user.id}\nlogin: {state_data.login}")
+tg_id: {message.from_user.id}\nlogin: {auth_state.login}")
     except Exception as e:
         logger.warning(f"Error: {e}")
     await state.clear()

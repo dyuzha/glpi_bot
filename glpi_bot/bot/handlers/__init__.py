@@ -1,11 +1,11 @@
 from aiogram import F
 from aiogram.filters import Command
-from bot.states import TicketCreation, Authorization, Base
+from bot.states import TicketCreation, AuthStates, Base
 
 
 from .deffault import (
     cmd_start,
-    cmd_begin
+    cmd_begin,
 
 )
 from .tickets import (
@@ -13,11 +13,14 @@ from .tickets import (
     process_title,
     process_description,
     cancel_creation,
-    start_ticket_creation
+    start_ticket_creation,
 )
 from .authorization import (
-    handle_login,
-    handle_code,
+    process_login,
+    process_code,
+    login_handler,
+    code_handler,
+    success_handler,
 )
 
 from .admins import delete_user

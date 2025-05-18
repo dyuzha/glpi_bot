@@ -27,9 +27,14 @@ class TimeHandler:
         """Можно ли отправить запрос (учитывая таймаут и блокировку)"""
         if self.blocked_until and datetime.now() < self.blocked_until:
             return False
-        if not self.last_request_time:
+        if self.last_request_time is None:
             return True
-        return (datetime.now() - self.last_request_time).seconds >= self.request_timeout
+
+        # Если в данном экземпляре не выставлена задержка между запросами
+        if self.request_timeout is None:
+            return (datetime.now() - self.last_request_time).seconds >= self.request_timeout
+        else:
+            return True
 
     def add_attempt(self) -> bool:
         """Увеличивает счетчик попыток. Возвращает False, если достигнут лимит."""
@@ -48,7 +53,7 @@ class TimeHandler:
     def get_remaining_time(self) -> int:
         """Оставшееся время блокировки (сек)"""
         if not self.blocked_until:
-            return 0
+            return None
         return max(0, int((self.blocked_until - datetime.now()).total_seconds()))
 
 
@@ -75,7 +80,7 @@ class AuthState:
 
     def is_code_valid(self) -> bool:
         """Проверяет не истекло ли время действия кода"""
-        if self.code is None or self.code_handler.last_request_time is None:
+        if self.code_handler.last_request_time is None:
             return False
 
         elapsed = (datetime.now() - self.code_handler.last_request_time).total_seconds()

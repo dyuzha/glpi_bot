@@ -16,5 +16,7 @@ class TicketCreation(StatesGroup):
 
 class AuthStates(StatesGroup):
     LOGIN = State()
+    LOGIN_HANDLER = State()
     CODE = State()
+    CODE_HANDLER = State()
     SUCCESS = State()
