@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class GLPIConnection:
     """Контекстный менеджер для работы с GLPI API"""
-    def __init__(self, glpi_url: str, app_token: str, username: str, password: str):
+    def __init__(self, url: str, app_token: str, username: str, password: str):
         """
         Инициализация подключения
         :param glpi_url: URL GLPI (например, 'https://glpi.example.com/apirest.php')
@@ -17,7 +17,7 @@ class GLPIConnection:
         :param username: Логин пользователя API
         :param password: Пароль пользователя
         """
-        self.glpi_url = glpi_url.rstrip('/')
+        self.url = url.rstrip('/')
         self.app_token = app_token
         self.auth_data = {
             'login': username,
@@ -45,7 +45,7 @@ class GLPIConnection:
         try:
             if hasattr(self, 'session_token'):
                 requests.get(
-                    f"{self.glpi_url}/killSession",
+                    f"{self.url}/killSession",
                     headers={
                         'Session-Token': self.session_token,
                         'App-Token': self.app_token
@@ -59,7 +59,7 @@ class GLPIConnection:
         """Установка соединения с GLPI API"""
         try:
             response = requests.post(
-                f"{self.glpi_url}/initSession",
+                f"{self.url}/initSession",
                 headers={
                     'Content-Type': 'application/json',
                     'App-Token': self.app_token
@@ -88,7 +88,7 @@ class GLPIConnection:
 
         try:
             requests.get(
-                f"{self.glpi_url}/killSession",
+                f"{self.url}/killSession",
                 headers={
                     'Session-Token': self.session_token,
                     'App-Token': self.app_token
@@ -114,7 +114,7 @@ class GLPIConnection:
         if not self.session_token:
             raise ConnectionError("Сессия не открыта")
 
-        url = f"{self.glpi_url}/{endpoint}"
+        url = f"{self.url}/{endpoint}"
         headers = {
             'Session-Token': self.session_token,
             'App-Token': self.app_token,

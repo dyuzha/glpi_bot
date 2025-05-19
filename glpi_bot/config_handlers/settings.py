@@ -15,7 +15,7 @@ if not Path(SETTINGS).exists():
 
 
 GLPI_DATA = {
-    'glpi_url': config['glpi']['glpi_url'],
+    'url': config['glpi']['url'],
     'app_token': config['glpi']['app_token'],
     'username': config['glpi']['username'],
     'password': config['glpi']['password']
