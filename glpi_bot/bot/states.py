@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)  # Используем __name__ для а�
 
 class Base(StatesGroup):
     waiting_authorization = State()
-    authorization = State()
+    START_CREATE_TICKET = State()
 
 class TicketCreation(StatesGroup):
     waiting_for_type = State()
@@ -14,9 +14,9 @@ class TicketCreation(StatesGroup):
     waiting_for_description = State()
     confirm_data = State()
 
-class Authorization(StatesGroup):
-    get_authorization = State()
-    waiting_for_login = State()
-    change_login = State()
-    waiting_for_code = State()
-    send_code = State()
+class AuthStates(StatesGroup):
+    LOGIN = State()
+    LOGIN_HANDLER = State()
+    CODE = State()
+    CODE_HANDLER = State()
+    SUCCESS = State()

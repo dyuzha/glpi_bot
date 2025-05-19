@@ -1,20 +1,19 @@
 import logging
 from aiogram import types, F
-# from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from bot.keyboards import auth_kb, main_kb, login_repeat
-from bot import dp
-from bot.states import Authorization, Base
+from bot.keyboards import auth_code_kb,  auth_login_kb, main_kb
+from bot import dp, AuthState
+from bot.states import Base, AuthStates
+from .deffault import cmd_begin
 from services import mail_confirmation, DBInterface, get_user_mail
 from datetime import datetime, timedelta
 from services.exceptions import LDAPError, LDAPUserNotFound, LDAPMailNotFound
-# from services import ldap_service
 
-TIMEOUT_REPEAT = 10
 LENGTH_CODE = 4
 
 
 logger = logging.getLogger(__name__)
+
 
 REGISTER_NEEDED=(
     "Для продолжения взаимодействия с ботом необходима авторизация\n"
@@ -31,7 +30,6 @@ REPEAT_REQUEST=(
 
 USER_NOT_FOUND= (
     "Пользователь с данным логином не найден.\n"
-    "Попробуйте еще раз."
     )
 
 LOGIN_NOT_FOUND=(
@@ -48,53 +46,72 @@ AUTHORIZATION_ERROR=(
     "Попробуйте позже или обратитесь в поддержку."
     )
 
-# @dp.message(Base.waiting_authorization)
-# async def authorization(messages: types.Message, state: FSMContext):
-#     await messages.answer(REGISTER_NEEDED,
-#                           reply_markup=types.ReplyKeyboardRemove())
-#     await state.set_state(Authorization.waiting_for_login)
 
-@dp.message(Authorization.change_login, F.text)
-@dp.message(Authorization.waiting_for_code, F.text == "Изменить логин")
-async def handle_repeat_login(messages: types.Message, state: FSMContext):
-    state_data = await state.get_data()
+async def get_auth_state(state: FSMContext) -> AuthState:
+    data = await state.get_data()
+    if 'auth_state' not in data:
+        data['auth_state'] = AuthState()
+        await state.set_data(data)
+    return data['auth_state']
 
-    # проверка временного ограничения на запрос кода
-    last_request = state_data.get('last_request_time')
-    if last_request and (datetime.now() - last_request) < timedelta(seconds=TIMEOUT_REPEAT):
-        remaining = TIMEOUT_REPEAT - (datetime.now() - last_request).seconds
-        await messages.answer(
-            f"⏳ Изменить логин будет возможно через {remaining} секунд"
+
+async def send_code(mail):
+    """Выполняет отправку кода на mail"""
+    logger.debug(f"Попытка отправить код на <{mail}>")
+    code = await mail_confirmation.send_confirmation_email(mail, length=LENGTH_CODE)
+    if code is None:
+        raise Exception("Не удалось отправить код")
+    return code
+
+
+@dp.message(AuthStates.LOGIN, F.text != "Изменить логин")
+async def process_login(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние LOGIN")
+    auth_state = await get_auth_state(state)
+
+    # проверка временного ограничения на изменения логина
+    # if not auth_state.login_handler.can_make_request():
+    #     remaining = auth_state.login_handler.get_remaining_time()
+    #     await message.answer(
+    #         "⏳ Превышено максимальное число попыток."
+    #         f"Ввести логин снова, будет возможно через {remaining} секунд.",
+    #         reply_markup=auth_login_kb()
+    #     )
+    #     return
+
+    # Проверка на наличие блокировки
+    remaining_attempts_time = auth_state.login_handler.get_blocked_attempts_time()
+    if remaining_attempts_time != 0:
+        await message.answer(
+            f"Превышено количество попыток. \
+Попробуйте через {remaining_attempts_time} секунд",
+            reply_markup=types.ReplyKeyboardRemove()
         )
         return
 
-    await messages.answer(
-        "Введите свой логин, используемый в вашей организации (н-р: ivanov_ii):",
-        reply_markup=types.ReplyKeyboardRemove()
-    )
-
-    await state.set_state(Authorization.waiting_for_login)
-    # await handle_login(messages, state)
+    # auth_state.login_handler.last_request_time = datetime.now()
+    # await state.update_data(auth_state = auth_state)
+    # await message.answer(f"Введите свой логин для продолжения")
+    await state.set_state(AuthStates.LOGIN_HANDLER)
+    await login_handler(message, state)
 
 
-# @dp.message(Authorization.change_login, F.text)
-# @dp.message(Authorization.waiting_for_code, F.text == "Изменить логин")
-@dp.message(Authorization.waiting_for_login, F.text)
-async def handle_login(messages: types.Message, state: FSMContext):
-    login = str(messages.text).strip()
-    logging.debug(f"Получен логин от пользоватля: <{login}>")
-    await state.update_data(login=login)
+@dp.message(AuthStates.LOGIN_HANDLER, F.text != "Изменить логин")
+async def login_handler(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние LOGIN_HANDLER")
+    auth_state = await get_auth_state(state)
 
-    state_data = await state.get_data()
-
-    # проверка временного ограничения на запрос кода
-    last_request = state_data.get('last_request_time')
-    if last_request and (datetime.now() - last_request) < timedelta(seconds=TIMEOUT_REPEAT):
-        remaining = TIMEOUT_REPEAT - (datetime.now() - last_request).seconds
-        await messages.answer(
-            f"⏳ Повторный запрос кода возможен через {remaining} секунд"
+    # Проверка на наличие блокировки
+    if auth_state.login_handler.get_blocked_attempts_time() != 0:
+        remaining = auth_state.login_handler.get_blocked_attempts_time()
+        await message.answer(
+            f"Превышено количество попыток. Попробуйте через {remaining} секунд",
+            reply_markup=types.ReplyKeyboardRemove()
         )
         return
+
+    auth_state.login_handler.add_attempt()
+    login = message.text
 
     # Полкучение email
     try:
@@ -106,139 +123,170 @@ async def handle_login(messages: types.Message, state: FSMContext):
         if mail == "None":
             raise LDAPMailNotFound
 
-        await state.update_data(mail=mail)
-        await state.set_state(Authorization.send_code)
-        # Вручную вызываем следующий обработчик
-        await send_code(messages, state)
-
     except LDAPMailNotFound as e:
         logger.warning(f"Error: {e}")
-        await messages.answer(MAIL_NOT_FOUND)
+        await message.answer(MAIL_NOT_FOUND)
         await state.clear()
 
     except LDAPUserNotFound as e:
         logger.warning(f"Error: {e}")
-        await messages.answer(USER_NOT_FOUND)
-        await state.set_state(Authorization.change_login)
-        await handle_repeat_login(messages, state)
+        await message.answer(
+            USER_NOT_FOUND, reply_markup=types.ReplyKeyboardRemove()
+        )
+        logger.debug(f"Неудачная попытка ввода логина: {message.text}")
+
+        # Подсчет оставшихся попыток
+        remaining_attempts = auth_state.login_handler.remaining_attempts
+        logger.debug(f"Осталось попыток {remaining_attempts}")
+        await message.answer(f"Осталось попыток: {remaining_attempts}")
+
+        # Выставление блокировки, если попытки закончились
+        if remaining_attempts == 0:
+            remaining_time = auth_state.login_handler.set_attempts_blocked_until()
+            logger.debug(f"Выставлена блокировка на {remaining_time} секунд")
+            await message.answer(f"Попробуйте через {remaining_time} секунд")
+        return
 
     except LDAPError as e:
         logger.critical(f"Error: {e}")
-        await messages.answer(AUTHORIZATION_ERROR)
+        await message.answer(AUTHORIZATION_ERROR)
         await state.clear()
 
     except Exception as e:
         logger.critical(f"Error: {e}")
-        await messages.answer(AUTHORIZATION_ERROR)
+        await message.answer(AUTHORIZATION_ERROR)
         await state.clear()
 
+    else:
+        auth_state.mail = mail
+        auth_state.login_handler.reset()
+        auth_state.login = login
+        await state.set_state(AuthStates.CODE)
+        # Вручную вызываем следующий обработчик
+        await process_code(message, state)
 
-@dp.message(Authorization.send_code)
-async def send_code(messages: types.Message, state: FSMContext):
-    """Выполняет отправку кода на email"""
-    logger.debug("Переход к обработчику отправки кода")
-    state_data = await state.get_data()
-    mail = state_data["mail"]
 
-    try:
-        logger.debug(f"Попытка отправить код на <{mail}>")
-        code = await mail_confirmation.send_confirmation_email(mail, length=LENGTH_CODE)
-        if code is None:
-            raise Exception("Не удалось отправить код")
+@dp.message(AuthStates.CODE, F.text)
+async def process_code(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние CODE")
+    auth_state = await get_auth_state(state)
+    mail = auth_state.mail
 
-        logger.debug(f"На <{mail}> отправлен код: <{code}>")
-        await state.update_data(
-            mail=mail,
-            code=code,
-            code_created_at=datetime.now(),
-            last_request_time=datetime.now(),
+    # Обработка возможности отправки кода
+    remaining_blocked_time = auth_state.code_handler.get_blocked_request_time()
+    if remaining_blocked_time != 0:
+        await message.answer(
+            f"Отправить код повторно возможно через {remaining_blocked_time} \
+секунд", reply_markup=auth_code_kb()
         )
+        return
 
-        await messages.answer(
+    # Отправка кода
+    try:
+        code = await send_code(mail)
+    except Exception as e:
+        logger.error(f"Ошибка отправки кода на {mail}: {e}")
+        await message.answer(
+            "⚠️ Не удалось отправить код подтверждения.\n"
+            "Попробуйте позже или обратитесь в поддержку.",
+        )
+        await state.clear()
+        return
+
+    else:
+        auth_state.code = code
+        auth_state.code_handler.last_request_time = datetime.now()
+        await message.answer(
             f"На <b>{mail}</b> был отправлен 4-значный код авторизации.\n"
             f"⏳ Код действителен в течение 5 минут\n"
             f"Введите его для завершения авторизации:",
-            parse_mode="HTML", reply_markup=auth_kb(),
+            parse_mode="HTML", reply_markup=auth_code_kb(),
         )
-        await state.set_state(Authorization.waiting_for_code)
-
-    except Exception as e:
-        logger.error(f"Ошибка отправки кода на {mail}: {e}")
-        await messages.answer(
-            "⚠️ Не удалось отправить код подтверждения.\n"
-            "Попробуйте позже или обратитесь в поддержку."
-        )
-        await state.clear()
+        await state.set_state(AuthStates.CODE_HANDLER)
 
 
-@dp.message(Authorization.waiting_for_code, F.text.func(
+@dp.message(AuthStates.CODE_HANDLER, F.text.func(
     lambda text: text.isdigit() and len(text) == 4))
-async def handle_code(message: types.Message, state: FSMContext):
-    state_data = await state.get_data()
+async def code_handler(message: types.Message, state: FSMContext):
+    logger.debug(f"Переход в состояние CODE_HANDLER")
+    auth_state = await get_auth_state(state)
 
-    # Проверка срока действия кода
-    code_created_at = state_data.get('code_created_at')
-    if code_created_at and (datetime.now() - code_created_at) > timedelta(minutes=5):
+    # Проверка не истекло ли время действия кода
+    if not auth_state.is_code_valid():
+        logger.debug("Время действия кода истекло")
         await message.answer(
             "⌛️ Время действия кода истекло.\n"
-            "Запросите новый код, введя логин снова."
+            "Запросите новый код.",
+            reply_markup=auth_code_kb()
         )
-        await state.set_state(Authorization.change_login)
+        auth_state.code_handler.reset()
         return
 
-    if message.text != state_data['code']:
-        await message.answer("❌ Неверный код подтверждения. \
-                Попробуйте еще раз:")
-    else:
-        await message.answer("✅ Авторизация успешно завершена!", reply_markup=main_kb())
-        DBInterface.save_user(telegram_id=message.from_user.id, login=state_data['login'])
-        login = state_data["login"]
-        await state.clear()
-        await state.update_data(login=login)
-        await state.set_state(Base.authorization)
-
-
-# Обработчик для команды "отправить код повторно"
-@dp.message(Authorization.waiting_for_code, F.text.lower() == "отправить код повторно")
-async def resend_code_handler(messages: types.Message, state: FSMContext):
-    state_data = await state.get_data()
-    mail = state_data['mail']
-
-    # проверка временного ограничения на запрос кода
-    last_request = state_data.get('last_request_time')
-    if last_request and (datetime.now() - last_request) < timedelta(seconds=TIMEOUT_REPEAT):
-        remaining = TIMEOUT_REPEAT - (datetime.now() - last_request).seconds
-        await messages.answer(
-            f"⏳ Повторный запрос кода возможен через {remaining} секунд"
+    # Проверка на наличие блокировки
+    if auth_state.code_handler.get_blocked_attempts_time() != 0:
+        remaining = auth_state.code_handler.get_blocked_attempts_time()
+        await message.answer(
+            f"Превышено количество попыток. Попробуйте через {remaining} секунд",
+            reply_markup=auth_code_kb()
         )
         return
 
+    auth_state.code_handler.add_attempt()
+
+    # Обработка неправильного кода
+    if message.text != auth_state.code:
+        logger.debug(f"Неудачная попытка ввода кода: {message.text}")
+        await message.answer(f"❌ Неверный код подтверждения")
+
+        # Подсчет оставшихся попыток
+        remaining_attempts = auth_state.code_handler.remaining_attempts
+        logger.debug(f"Осталось попыток {remaining_attempts}")
+        await message.answer(f"Осталось попыток: {remaining_attempts}")
+
+        # Выставление блокировки, если попытки закончились
+        if remaining_attempts == 0:
+            remaining_time = auth_state.code_handler.set_attempts_blocked_until()
+            logger.debug(f"Выставлена блокировка на {remaining_time} секунд")
+            await message.answer(f"Попробуйте через {remaining_time} секунд")
+
+        return
+
+    logger.debug(f"Успешная авторизация")
+    await success_handler(message, state)
+
+
+@dp.message(AuthStates.CODE_HANDLER, F.text)
+async def invalid_code_handler(message: types.Message, state: FSMContext):
+    logger.debug(f"Обработка нестандартного ответа")
+    """Обработка нестандартного сообщения на запрос кода"""
+    match message.text:
+        case "Изменить логин":
+            await message.answer(
+                "Введите другой логин",
+                reply_markup=types.ReplyKeyboardRemove()
+            )
+            await state.set_state(AuthStates.LOGIN)
+
+        case "Отправить код повторно":
+            await process_code(message, state)
+
+        case _:
+            await message.answer(f"Код должен содержать только цифры, длина \
+должна быть равна {LENGTH_CODE}")
+
+
+@dp.message(AuthStates.SUCCESS, F.text)
+async def success_handler(message: types.Message, state: FSMContext):
+    auth_state = await get_auth_state(state)
+    await message.answer("✅ Авторизация успешно завершена!", reply_markup=main_kb())
     try:
-        new_code = await mail_confirmation.send_confirmation_email(mail)
-
-        if not new_code:
-            raise Exception("Не удалось отправить код")
-
-        await state.update_data(
-            mail=mail,
-            code=new_code,
-            code_created_at=datetime.now(),
-            # last_request_time=datetime.now(),
+        DBInterface.save_user(
+            telegram_id=message.from_user.id,
+            login=auth_state.login
         )
-
-        await messages.answer(
-            f"На <b>{mail}</b> повторно был отправлен 4-значный код авторизации.\n"
-            f"⏳ Код действителен в течение 5 минут\n"
-            f"Введите его для завершения авторизации:",
-            parse_mode="HTML", reply_markup=auth_kb(),
-        )
-        await state.set_state(Authorization.waiting_for_code)
-
+        logger.info(f"Добавлен новый пользоватьель в базу данных: \n\
+tg_id: {message.from_user.id}\nlogin: {auth_state.login}")
     except Exception as e:
-        logger.error(f"Ошибка отправки кода на <{mail}>: {e}")
-        await messages.answer(
-            "⚠️ Не удалось отправить код подтверждения.\n"
-            "Попробуйте позже или обратитесь в поддержку."
-        )
-        await state.clear()
-
+        logger.warning(f"Error: {e}")
+    await state.clear()
+    await cmd_begin()
