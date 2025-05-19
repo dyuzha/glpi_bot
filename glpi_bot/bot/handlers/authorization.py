@@ -1,11 +1,12 @@
 import logging
+from glpi_bot import db_interface
 from aiogram import types, F
 from aiogram.fsm.context import FSMContext
 from bot.keyboards import auth_code_kb, succ_kb
 from bot import dp, AuthState
 from bot.states import AuthStates
 from .deffault import cmd_begin
-from services import mail_confirmation, DBInterface, get_user_mail
+from services import mail_confirmation, get_user_mail
 from datetime import datetime
 from services.exceptions import LDAPError, LDAPUserNotFound, LDAPMailNotFound
 
@@ -269,7 +270,7 @@ async def success_handler(message: types.Message, state: FSMContext):
         "✅ Авторизация успешно завершена!", reply_markup=succ_kb()
     )
     try:
-        DBInterface.save_user(
+        db_interface.save_user(
             telegram_id=message.from_user.id,
             login=auth_state.login
         )

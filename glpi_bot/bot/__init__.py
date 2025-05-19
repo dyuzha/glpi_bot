@@ -8,13 +8,18 @@ from config_handlers import TELEGRAM_TOKEN
 from .middlewares import AuthMiddleware
 from .models import AuthState
 from aiogram.fsm.storage.memory import MemoryStorage
+from services import DBInterface
+from database import Database, SessionManager
 
 
 logger = logging.getLogger(__name__)
 
-
 bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(
     parse_mode=ParseMode.HTML))
+
+database = Database(fff)
+session_manager = SessionManager(database)
+db_interface = DBInterface()
 
 
 storage = MemoryStorage()

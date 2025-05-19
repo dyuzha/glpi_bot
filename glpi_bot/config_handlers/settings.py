@@ -21,3 +21,7 @@ GLPI_DATA = {
     'password': config['glpi']['password']
 }
 TELEGRAM_TOKEN = config['telegram']['token']
+
+DB = {
+    'path': config['db']['path']
+}

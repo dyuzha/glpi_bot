@@ -1,5 +1,5 @@
 from .mail import mail_confirmation
-from .db import DBInterface
+from .db_service import DBInterface
 
 from .ad import get_user_mail
 
