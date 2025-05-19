@@ -51,3 +51,11 @@ def auth_login_kb():
         ],
         resize_keyboard=True
     )
+
+def succ_kb():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Перейти в главное меню")],
+        ],
+        resize_keyboard=True
+    )

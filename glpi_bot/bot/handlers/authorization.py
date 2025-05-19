@@ -1,12 +1,12 @@
 import logging
 from aiogram import types, F
 from aiogram.fsm.context import FSMContext
-from bot.keyboards import auth_code_kb,  auth_login_kb, main_kb
+from bot.keyboards import auth_code_kb, succ_kb
 from bot import dp, AuthState
-from bot.states import Base, AuthStates
+from bot.states import AuthStates
 from .deffault import cmd_begin
 from services import mail_confirmation, DBInterface, get_user_mail
-from datetime import datetime, timedelta
+from datetime import datetime
 from services.exceptions import LDAPError, LDAPUserNotFound, LDAPMailNotFound
 
 LENGTH_CODE = 4
@@ -69,16 +69,6 @@ async def process_login(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние LOGIN")
     auth_state = await get_auth_state(state)
 
-    # проверка временного ограничения на изменения логина
-    # if not auth_state.login_handler.can_make_request():
-    #     remaining = auth_state.login_handler.get_remaining_time()
-    #     await message.answer(
-    #         "⏳ Превышено максимальное число попыток."
-    #         f"Ввести логин снова, будет возможно через {remaining} секунд.",
-    #         reply_markup=auth_login_kb()
-    #     )
-    #     return
-
     # Проверка на наличие блокировки
     remaining_attempts_time = auth_state.login_handler.get_blocked_attempts_time()
     if remaining_attempts_time != 0:
@@ -89,9 +79,6 @@ async def process_login(message: types.Message, state: FSMContext):
         )
         return
 
-    # auth_state.login_handler.last_request_time = datetime.now()
-    # await state.update_data(auth_state = auth_state)
-    # await message.answer(f"Введите свой логин для продолжения")
     await state.set_state(AuthStates.LOGIN_HANDLER)
     await login_handler(message, state)
 
@@ -278,7 +265,9 @@ async def invalid_code_handler(message: types.Message, state: FSMContext):
 @dp.message(AuthStates.SUCCESS, F.text)
 async def success_handler(message: types.Message, state: FSMContext):
     auth_state = await get_auth_state(state)
-    await message.answer("✅ Авторизация успешно завершена!", reply_markup=main_kb())
+    await message.answer(
+        "✅ Авторизация успешно завершена!", reply_markup=succ_kb()
+    )
     try:
         DBInterface.save_user(
             telegram_id=message.from_user.id,
