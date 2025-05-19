@@ -45,7 +45,6 @@ RUN update-ca-certificates
 RUN pip install certifi
 
 
-
 WORKDIR /glpi_bot
 
 # Устанавливаем зависимости

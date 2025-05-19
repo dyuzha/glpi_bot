@@ -37,6 +37,7 @@ fi
 # Запуск контейнера
 docker run -d \
   -v "${GLPI_TG_CONFIG_DIR}:/configs" \
+  -v "${GLPI_TG_DATA_DIR}:/data" \
   --name gbc \
   glpi_bot
 

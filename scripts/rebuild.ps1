@@ -15,6 +15,7 @@ if ($GLPI_TG_CONFIG_DIR -ne $null) {
 # Запуск контейнера
 docker run -d `
     -v "${env:GLPI_TG_CONFIG_DIR}:/configs" `
+    -v "${env:GLPI_TG_DATA_DIR}:/data" `
     --name gbc `
     glpi_bot
 

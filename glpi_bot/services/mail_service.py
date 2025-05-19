@@ -3,12 +3,13 @@ import ssl
 from email.mime.text import MIMEText
 import random
 import string
-from config_handlers import MAIL_DATA
 from typing import Optional
 import logging
 import certifi
 
+
 logger = logging.getLogger(__name__)
+
 
 class EmailConfirmation():
     """Класс для подтверждения email"""
@@ -82,5 +83,3 @@ class EmailConfirmation():
         except Exception as e:
             logger.warning(f"Ошибка при отправке письма на {msg['To']}: {e}")
             return None
-
-mail_confirmation = EmailConfirmation(**MAIL_DATA)

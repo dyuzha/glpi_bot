@@ -36,7 +36,7 @@ def type_kb():
         resize_keyboard=True
     )
 
-def auth_kb():
+def auth_code_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="Изменить логин"), KeyboardButton(text="Отправить код повторно")],
@@ -44,10 +44,18 @@ def auth_kb():
         resize_keyboard=True
     )
 
-def login_repeat():
+def auth_login_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Ввести логин повторно")],
+            [KeyboardButton(text="Изменить логин")],
+        ],
+        resize_keyboard=True
+    )
+
+def succ_kb():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Перейти в главное меню")],
         ],
         resize_keyboard=True
     )
