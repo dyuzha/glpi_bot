@@ -6,7 +6,6 @@ from services import glpi_service
 from bot.keyboards import main_kb, back_kb, confirm_kb, type_kb
 from bot import dp
 from bot.states import TicketCreation, BaseStates
-from config_handlers import GLPI_DATA
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +23,7 @@ SELECT_WILL_TYPE_TICKET = (
     "🐛 <b>Инцидент</b> — если что-то сломалось\n"
     "📋 <b>Запрос</b> — если вам что-то нужно"
 )
-INNPUT_WILL_DISCRIPTION = (
+INPUT_WILL_DISCRIPTION = (
     "✏️ Теперь подробно опишите проблему:\n\n"
     "• Что произошло?\n"
     "• Когда возникла проблема?\n"
@@ -34,7 +33,7 @@ INNPUT_WILL_DISCRIPTION = (
     "• Укажите имя ПК, с которым связана проблема\n"
     "• Если проблема связана с оборудование, напишите его модель"
 )
-INPUT_WILL_REPEAT_DESRIPTION = "Редактируем описание. Введите новый текст:"
+INPUT_WILL_REPEAT_DESCRIPTION = "Редактируем описание. Введите новый текст:"
 
 CHANGE_WILL_TYPE_TICKET = "Пожалуйста, выберите тип заявки кнопками ниже:"
 INPUT_WILL_HEAD = "📝 Введите краткий заголовок заявки (например: \
@@ -180,7 +179,7 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
     if message.text == BACK_KEY:
         logger.debug("Переход на шаг назад (Составление описания)")
         await message.answer(
-            INPUT_WILL_REPEAT_DESRIPTION,
+            INPUT_WILL_REPEAT_DESCRIPTION,
             reply_markup=back_kb()
         )
         await state.set_state(TicketCreation.waiting_for_description)
