@@ -1,3 +1,58 @@
+# glpi/service.py
+
+import logging
+import requests
+from typing import Optional
+from datetime import datetime, timedelta
+from glpi import GLPIContextManager
+
+
+logger = logging.getLogger(__name__)
+
+
+class GLPIInterface:
+    def __init__(self, session_manager: GLPIContextManager):
+        self.session_manager = session_manager
+
+    def _make_request(self, method: str, endpoint: str, json_data: dict = None):
+        """
+        Выполнение запроса к API GLPI
+        :param method: HTTP метод (GET, POST, PUT, DELETE)
+        :param endpoint: Конечная точка API (например, 'Ticket')
+        :param json_data: Данные для отправки (уже должны быть в формате {'input': {...}})
+        :return: Ответ API
+        """
+        if not self.session_manager.glpi_base.session_token:
+            raise ConnectionError("Сессия не открыта")
+
+        url = f"{self.session_manager.glpi_base.url}/{endpoint}"
+        headers = {
+            'Session-Token': self.session_manager.glpi_base.session_token,
+            'App-Token': self.session_manager.glpi_base.app_token,
+            'Content-Type': 'application/json'
+        }
+
+        try:
+            response = requests.request(
+                method.upper(),
+                url,
+                headers=headers,
+                json=json_data
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except requests.exceptions.HTTPError as e:
+            error_msg = f"HTTP Error {e.response.status_code}: {e.response.text}"
+            logger.error(error_msg)
+            raise ConnectionError(error_msg) from e
+
+        except requests.exceptions.RequestException as e:
+            error_msg = f"Ошибка API запроса: {str(e)}"
+            logger.error(error_msg)
+            raise ConnectionError() from e
+
+
 # glpi/models.py
 
 import logging
@@ -17,68 +72,7 @@ class GLPIUser:
     def get_id(self) -> int:
         return self.id
 
-
-class GLPIService(GLPIConnection):
-    """Сервис для взаимодействия с GLPI"""
-
-    def create_ticket(self, **data) -> dict:
-        """Создание заявки"""
-        ticket_data = {"input": data}
-        return self._make_request("POST", "Ticket", json_data=ticket_data)
-
-    def get_user(self, login: str) -> Optional[GLPIUser]:
-        """Получение пользователя GLPI"""
-        # Использую contains потомучто equals не работает
-        data = {
-            "criteria": [
-                {
-                    "field": "1",
-                    "searchtype": "contains",
-                    "value": login,
-                    "forcedisplay": "id"
-                },
-            ],
-            "forcedisplay": ["1", "2", "3"]
-        }
-
-        responce = self._make_request("POST", "search/User", json_data=data)
-        if responce['totalcount'] == 0:
-            return None
-
-        # Отфильтровываю вывод до полного совпадения (костыль)
-        users = responce['data']
-        for user in users:
-            if user["1"] == login:
-                return GLPIUser(**user)
-        return None
-
-    def assign_ticket(self, ticket_id: int, user_id: int):
-        """Назначение заявки на пользователя"""
-        # data = {
-        #     "input": {
-        #         "_users_id_assign": user_id
-        #     }
-        # }
-        # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
-        pass
+    def get_id_company(self) -> int:
+        ...
 
 
-class TicketBuilder(GLPIService):
-    """Класс для составления заявок"""
-    # Пробросить id источника запросов в конфиг
-
-    def create_ticket(self, **data):
-        user = self.get_user(data["login"])
-        if user is None:
-            raise ValueError
-        else: del data["login"]
-
-        # Получаем id автора заявки
-        user_id = user.get_id()
-        # Выставляем его id в инициаторы заявки
-        data["_users_id_requester"] = user_id
-
-        # Делаем источник заявки - телеграмм
-        data["requesttypes_id"] = 14
-
-        return super().create_ticket(**data)
