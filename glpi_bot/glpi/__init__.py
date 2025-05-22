@@ -1,13 +1,14 @@
 # glpi/__init__.py
 
 
-from .base import GLPIConnection
-from .session import GLPIContextManager
+from .base import GLPIBase
+from .session import GLPISessionManager
 from .models import GLPIInterface, GLPIUser
 
 
 __all__ = [
-    'TicketBuilder',
-    'GLPIConnection',
-    'GLPIContextManager'
+    'GLPIBase',
+    'GLPIInterface',
+    'GLPISessionManager',
+    'GLPIUser'
 ]

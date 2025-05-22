@@ -1,34 +1,28 @@
-# glpi/service.py
+# glpi/models.py
 
 import logging
 import requests
 from typing import Optional
-from datetime import datetime, timedelta
-from glpi import GLPIContextManager
+from glpi import GLPIBase
 
 
 logger = logging.getLogger(__name__)
 
 
-class GLPIInterface:
-    def __init__(self, session_manager: GLPIContextManager):
-        self.session_manager = session_manager
-
-    def _make_request(self, method: str, endpoint: str, json_data: dict = None):
+class GLPIInterface(GLPIBase):
+    def make_request(self, method: str, endpoint: str, json_data: Optional[dict]):
         """
         Выполнение запроса к API GLPI
         :param method: HTTP метод (GET, POST, PUT, DELETE)
         :param endpoint: Конечная точка API (например, 'Ticket')
-        :param json_data: Данные для отправки (уже должны быть в формате {'input': {...}})
+        :param json_data: Данные для отправки
         :return: Ответ API
         """
-        if not self.session_manager.glpi_base.session_token:
-            raise ConnectionError("Сессия не открыта")
 
-        url = f"{self.session_manager.glpi_base.url}/{endpoint}"
+        url = f"{self.url}/{endpoint}"
         headers = {
-            'Session-Token': self.session_manager.glpi_base.session_token,
-            'App-Token': self.session_manager.glpi_base.app_token,
+            'Session-Token': self.session_token,
+            'App-Token': self.app_token,
             'Content-Type': 'application/json'
         }
 
@@ -53,16 +47,6 @@ class GLPIInterface:
             raise ConnectionError() from e
 
 
-# glpi/models.py
-
-import logging
-from .api import GLPIConnection
-from typing import Optional
-
-
-logger = logging.getLogger(__name__)
-
-
 class GLPIUser:
     def __init__(self, **kwargs):
         self.login = kwargs['1']
@@ -74,5 +58,3 @@ class GLPIUser:
 
     def get_id_company(self) -> int:
         ...
-
-

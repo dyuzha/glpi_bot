@@ -9,10 +9,9 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 
-class GLPIConnection:
+class GLPIBase:
     def __init__(self, url: str, app_token: str, username: str, password: str):
         """
-        Инициализация подключения
         :param glpi_url: URL GLPI (например, 'https://glpi.example.com/apirest.php')
         :param app_token: App-Token из настроек GLPI
         :param username: Логин пользователя API
@@ -27,5 +26,3 @@ class GLPIConnection:
         }
         self.session_token: Optional[str] = None
         self.token_expires: Optional[datetime] = None
-
-

@@ -4,92 +4,92 @@ import logging
 import requests
 from typing import Optional
 from datetime import datetime, timedelta
-from glpi import GLPIConnection
+from glpi import GLPIInterface
+from contextlib import contextmanager
 
 
 logger = logging.getLogger(__name__)
 
 
-class GLPIContextManager:
+class GLPISessionManager:
     """Контекстный менеджер для работы с GLPI API"""
-    def __init__(self, glpi_base: GLPIConnection):
-        self.glpi_base = glpi_base
 
-    def __enter__(self):
-        """Открытие сессии при входе в контекст"""
-        self._force_kill_previous_session()
-        self._open_session()
-        return self
+    def __init__(self, glpi: GLPIInterface):
+        self.glpi = glpi
+        self._session_token: Optional[str]
+        self._token_expires: Optional[datetime]
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Закрытие сессии при выходе из контекста"""
-        self._close_session()
-        if exc_type is not None:
-            logger.warning(f"Произошла ошибка: {exc_val}")
-            raise exc_type
-        return True
+
+    @contextmanager
+    def get_session(self):
+        """Контекстный менеджер для работы с сессией GLPI"""
+        try:
+            self._open_session()
+            yield self
+        except Exception as e:
+            logger.error(f"Ошибка во время работы сессии: {e}")
+            raise
+        finally:
+            self._close_session
+
 
     def _force_kill_previous_session(self):
+        """Принудитльное завершение предыдущей сесии"""
         try:
-            if hasattr(self, 'session_token'):
+            if self._session_token:
                 requests.get(
-                    f"{self.glpi_base.url}/killSession",
+                    f"{self.glpi.url}/killSession",
                     headers={
-                        'Session-Token': self.session_token,
-                        'App-Token': self.glpi_base.app_token
+                        'Session-Token': self._session_token,
+                        'App-Token': self.glpi.app_token
                     },
                     timeout=3
                 )
-        except:
-            pass
+        except Exception:
+            logger.debug("Не удалось завершить предыдущую сессию", exc_info=True)
 
     def _open_session(self):
         """Установка соединения с GLPI API"""
         try:
             response = requests.post(
-                f"{self.glpi_base.url}/initSession",
+                f"{self.glpi.url}/initSession",
                 headers={
                     'Content-Type': 'application/json',
-                    'App-Token': self.glpi_base.app_token
+                    'App-Token': self.glpi.app_token
                 },
-                json=self.glpi_base.auth_data,
+                json=self.glpi.auth_data,
                 timeout=10
             )
             response.raise_for_status()
-            # logging.info(f"Request: {response.request.headers}")
 
-            self.session_token = response.json().get('session_token')
-            logger.info(f"Given token : {self.session_token}")
-            print(f"Given token : {self.session_token}")
-            self.token_expires = datetime.now() + timedelta(minutes=5)  # Токен будет жить 5 минут
-            # self.token_expires = datetime.now() + timedelta(hours=1)  # Токен будет жить 15 минут
-            print("Сессия успешно открыта")
+            self._session_token = response.json().get('session_token')
+            logger.info(f"Получен токен: {self._session_token}")
+            # Установка времени жизни токена
+            self._token_expires = datetime.now() + timedelta(minutes=5)
+            logger.info(f"Сессия успешно открыта")
 
         except requests.exceptions.RequestException as e:
-
-            raise ConnectionError(f"Ошибка подключения к GLPI: {str(e)}") from e
+            logger.error(f"Ошибка подключения к GLPI: {e}", exc_info=True)
+            raise ConnectionError(f"Ошибка подключения к GLPI: {e}") from e
 
     def _close_session(self):
         """Закрытие сессии GLPI"""
-        if not self.session_token:
+        if not self._session_token:
             return
 
         try:
             requests.get(
-                f"{self.glpi_base.url}/killSession",
+                f"{self.glpi.url}/killSession",
                 headers={
-                    'Session-Token': self.session_token,
-                    'App-Token': self.glpi_base.app_token
+                    'Session-Token': self._session_token,
+                    'App-Token': self.glpi.app_token
                 },
                 timeout=5
             )
-            print("Сессия успешно закрыта")
+            logger.info("Сессия успешно закрыта")
 
         except requests.exceptions.RequestException as e:
-            print(f"Предупреждение: не удалось закрыть сессию: {str(e)}")
+            logger.warning(f"Не удалось закрыть сессию: {e}")
         finally:
-            self.session_token = None
-            self.token_expires = None
-
-
-
+            self._session_token = None
+            self._token_expires = None

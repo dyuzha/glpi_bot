@@ -3,7 +3,7 @@ from aiogram import Dispatcher
 from aiogram.types import Message, CallbackQuery
 from aiogram import BaseMiddleware
 from typing import Union, Callable, Dict, Any, Awaitable
-from services import DBInterface
+from services import DBService
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class AuthMiddleware(BaseMiddleware):
             logger.warning(f"Событие {type(event)} не содержит from_user")
             return await handler(event, data)
 
-        user = DBInterface.check_user(telegram_id=event.from_user.id)
+        user = DBService.check_user(telegram_id=event.from_user.id)
 
         if not user:
             # Отвечаем только если событие поддерживает answer

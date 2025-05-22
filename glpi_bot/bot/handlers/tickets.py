@@ -2,26 +2,61 @@ import logging
 from aiogram import F, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from glpi.models import TicketBuilder
+from services import glpi_service
 from bot.keyboards import main_kb, back_kb, confirm_kb, type_kb
 from bot import dp
-from bot.states import TicketCreation, Base
+from bot.states import TicketCreation, BaseStates
 from config_handlers import GLPI_DATA
 
 
 logger = logging.getLogger(__name__)
 
-@dp.message(F.text == "Создать заявку", Base.START_CREATE_TICKET)
+
+ERROR_CREATE_TICKET = (
+    "❌ Произошла ошибка при создании заявки. Пожалуйста, попробуйте позже."
+)
+DISABLE_KEY = "❌ Отмена"
+COMPLETE_KEY = "✅ Подтвердить"
+BACK_KEY = "🔙 Назад"
+
+SELECT_WILL_TYPE_TICKET = (
+    "Выберите тип заявки:\n\n"
+    "🐛 <b>Инцидент</b> — если что-то сломалось\n"
+    "📋 <b>Запрос</b> — если вам что-то нужно"
+)
+INNPUT_WILL_DISCRIPTION = (
+    "✏️ Теперь подробно опишите проблему:\n\n"
+    "• Что произошло?\n"
+    "• Когда возникла проблема?\n"
+    "• Укажите имя ПК, с которым связана проблема\n"
+    "• Какие ошибки видите?\n\n"
+    "  Напишите данные, которые могли бы помочь быстрее решить проблему:\n\n"
+    "• Укажите имя ПК, с которым связана проблема\n"
+    "• Если проблема связана с оборудование, напишите его модель"
+)
+INPUT_WILL_REPEAT_DESRIPTION = "Редактируем описание. Введите новый текст:"
+
+CHANGE_WILL_TYPE_TICKET = "Пожалуйста, выберите тип заявки кнопками ниже:"
+INPUT_WILL_HEAD = "📝 Введите краткий заголовок заявки (например: \
+'Проблема с принтером'):"
+
+RETURN_TO_MAIN_MENU = "Вы вернулись в главное меню"
+RETURN_TO_CHANGE_TYPE_TICKET = "Вы вернулись к выбору типа заявки"
+
+INVALID_HEADER = "❌ Заголовок должен содержать минимум 5 символов. \
+Попробуйте еще раз:"
+INVALID_DISCRIPTION = "❌ Описание должно содержать минимум 10 символов. \
+Пожалуйста, опишите подробнее:"
+
+
+@dp.message(F.text == "Создать заявку", BaseStates.COMPLETE_AUTORISATION)
 async def start_ticket_creation(message: types.Message, state: FSMContext):
     """Выбрать Инцидент/Запрос"""
     logger.debug(f"Переход в главное меню")
     data = await state.get_data()
     logger.debug(f"Данные в кеше: {data}")
-
     await message.answer(
-        "Выберите тип заявки:\n\n"
-        "🐛 <b>Инцидент</b> — если что-то сломалось\n"
-        "📋 <b>Запрос</b> — если вам что-то нужно",
+        SELECT_WILL_TYPE_TICKET,
         reply_markup=type_kb()
     )
     await state.set_state(TicketCreation.waiting_for_type)
@@ -33,12 +68,12 @@ async def start_ticket_build(message: types.Message, state: FSMContext):
     logger.debug("Переход к выбору типа заявки")
 
     # Сделать match/case
-    if message.text == "🔙 Назад":
-        await message.answer("Вы вернулись в главное меню", reply_markup=main_kb())
+    if message.text == BACK_KEY:
+        await message.answer(RETURN_TO_MAIN_MENU, reply_markup=main_kb())
         await state.clear()
         return
 
-    if message.text == "❌ Отмена":
+    if message.text == DISABLE_KEY:
         await cancel_creation(message, state)
         return
 
@@ -51,15 +86,15 @@ async def start_ticket_build(message: types.Message, state: FSMContext):
         logger.debug("Выбран пункт Запрос")
         type_ticket = 2
     else:
-        await message.answer("Пожалуйста, выберите тип заявки кнопками ниже:")
+        await message.answer(CHANGE_WILL_TYPE_TICKET)
         logger.debug(f"Некорректный ввод: {message.text}")
-        return  # Не переходим к следующему шагу при некорректном вводе
+        return
 
     # Сохраняем тип заявки в состоянии
     await state.update_data(type=type_ticket)
     logger.debug(f"Тип заявки сохранен в состоянии {type_ticket}")
     await message.answer(
-        "📝 Введите краткий заголовок заявки (например: 'Проблема с принтером'):",
+        INPUT_WILL_HEAD,
         reply_markup=back_kb()
     )
     await state.set_state(TicketCreation.waiting_for_title)
@@ -70,34 +105,27 @@ async def process_title(message: types.Message, state: FSMContext):
     """Обработка заголовка и запрос описания"""
     logger.debug("Переход созданию заголовка")
 
-    if message.text == "🔙 Назад":
-        await message.answer("Вы вернулись к выбору типа заявки", reply_markup=type_kb())
+    if message.text == BACK_KEY:
+        await message.answer(
+            RETURN_TO_CHANGE_TYPE_TICKET,
+            reply_markup=type_kb()
+        )
         logger.debug("Переход на шаг назад (Выбор типа заявки)")
         await state.clear()
         return
 
-    if message.text == "❌ Отмена":
+    if message.text == DISABLE_KEY:
         await cancel_creation(message, state)
         return
 
     if len(message.text) < 5:
         logger.debug(f"Некорректный ввод {message.text}")
-        await message.answer("❌ Заголовок должен содержать минимум 5 символов. Попробуйте еще раз:")
+        await message.answer(INVALID_HEADER)
         return
 
     await state.update_data(title=message.text)
     logger.debug(f"Заголовок заявки сохранен в состоянии {message.text}")
-    await message.answer(
-        "✏️ Теперь подробно опишите проблему:\n\n"
-        "• Что произошло?\n"
-        "• Когда возникла проблема?\n"
-        "• Укажите имя ПК, с которым связана проблема\n"
-        "• Какие ошибки видите?\n\n"
-        "  Напишите данные, которые могли бы помочь быстрее решить проблему:\n\n"
-        "• Укажите имя ПК, с которым связана проблема\n"
-        "• Если проблема связана с оборудование, напишите его модель",
-        reply_markup=back_kb()
-    )
+    await message.answer(INPUT_WILL_HEAD, reply_markup=back_kb())
     await state.set_state(TicketCreation.waiting_for_description)
 
 
@@ -106,7 +134,7 @@ async def process_description(message: types.Message, state: FSMContext):
     """Обработка описания и создание заявки в GLPI"""
     logger.debug("Переход созданию описания")
 
-    if message.text == "🔙 Назад":
+    if message.text == BACK_KEY:
         data = await state.get_data()
         logger.debug("Переход на шаг назад (Составление описания)")
         await message.answer(
@@ -117,12 +145,12 @@ async def process_description(message: types.Message, state: FSMContext):
         await state.set_state(TicketCreation.waiting_for_title)
         return
 
-    if message.text == "❌ Отмена":
+    if message.text == DISABLE_KEY:
         await cancel_creation(message, state)
         return
 
     if len(message.text) < 10:
-        await message.answer("❌ Описание должно содержать минимум 10 символов. Пожалуйста, опишите подробнее:")
+        await message.answer(INVALID_DISCRIPTION)
         logger.debug(f"Некорректный ввод {message.text}")
         return
 
@@ -149,20 +177,20 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
     """Обработка подтверждения"""
     logger.debug("Переход обработке подтверждения")
 
-    if message.text == "🔙 Назад":
+    if message.text == BACK_KEY:
         logger.debug("Переход на шаг назад (Составление описания)")
         await message.answer(
-            "Редактируем описание. Введите новый текст:",
+            INPUT_WILL_REPEAT_DESRIPTION,
             reply_markup=back_kb()
         )
         await state.set_state(TicketCreation.waiting_for_description)
         return
 
-    if message.text == "❌ Отмена":
+    if message.text == DISABLE_KEY:
         await cancel_creation(message, state)
         return
 
-    if message.text == "✅ Подтвердить":
+    if message.text == COMPLETE_KEY:
         data = await state.get_data()
         logger.debug(f"Получение всей информации: {data}")
 
@@ -184,23 +212,22 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
 
         try:
             # Создаем заявку в GLPI
-            with TicketBuilder(**GLPI_DATA) as glpi:
-                result = glpi.create_ticket(**ticket_data)
-                logger.debug(f"Создание заявки вернуло: {result}")
-                await message.answer(
-                    f"✅ Заявка успешно создана!\n\n"
-                    f"<b>Номер:</b> #{result['id']}\n"
-                    f"<b>Заголовок:</b> {data['title']}\n"
-                    f"<b>Статус:</b> В обработке",
-                    reply_markup=main_kb()
-                )
+            response = glpi_service.create_ticket(**GLPI_DATA)
+            logger.debug(f"Создание заявки вернуло: {response}")
 
         except Exception as e:
             logger.error(f"Ошибка создания заявки: {e}")
+            await message.answer(ERROR_CREATE_TICKET, reply_markup=main_kb())
+
+        else:
             await message.answer(
-                "❌ Произошла ошибка при создании заявки. Пожалуйста, попробуйте позже.",
+                f"✅ Заявка успешно создана!\n\n"
+                f"<b>Номер:</b> #{response['id']}\n"
+                f"<b>Заголовок:</b> {response['title']}\n"
+                f"<b>Статус:</b> В обработке",
                 reply_markup=main_kb()
             )
+
         finally:
             await state.clear()
             logger.debug(f"Обнуление состояния")
@@ -210,13 +237,14 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
 
 
 # @dp.message(Command("back"))
-# @dp.message(F.text.lower() == "🔙 Назад")
+# @dp.message(F.text.lower() == BACK_KEY)
 # async def go_back(message: types.Message, state: FSMContext):
 #     """Переход на шаг назад"""
 #     pass
 
+
 @dp.message(Command("cancel"))
-@dp.message(F.text.lower() == "❌ Отмена")
+@dp.message(F.text.lower() == DISABLE_KEY)
 async def cancel_creation(message: types.Message, state: FSMContext):
     """Отмена создания заявки"""
     await state.clear()

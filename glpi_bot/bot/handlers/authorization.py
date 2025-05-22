@@ -1,5 +1,5 @@
 import logging
-from services import db_interface
+from services import db_service
 from aiogram import types, F
 from aiogram.fsm.context import FSMContext
 from bot.keyboards import auth_code_kb, succ_kb
@@ -270,7 +270,7 @@ async def success_handler(message: types.Message, state: FSMContext):
         "✅ Авторизация успешно завершена!", reply_markup=succ_kb()
     )
     try:
-        db_interface.save_user(
+        db_service.save_user(
             telegram_id=message.from_user.id,
             login=auth_state.login
         )

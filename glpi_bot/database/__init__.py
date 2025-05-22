@@ -1,10 +1,13 @@
+# glpi/__init__.py
+
 from .base import Base, Database
 from .models import User
-from .session import SessionManager
+from .session import DBSessionManager
+
 
 __all__ = [
     'Base',
     'Database',
     'User',
-    'SessionManager'
+    'DBSessionManager'
 ]
