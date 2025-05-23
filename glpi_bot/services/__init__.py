@@ -13,8 +13,8 @@ from .async_ad import AsyncLDAPService
 from .mail_service import EmailConfirmation
 
 # glpi
-from glpi import GLPISessionManager, GLPIInterface
-from glpi_service import TicketBuilder
+from glpi import GLPISessionManager, GLPIBase
+from .glpi_service import GLPIService
 
 # Инициализация бд
 db = Database('sqlite:////data/users.db')
@@ -26,6 +26,6 @@ db_service = DBService(db_session_manager)
 mail_confirmation = EmailConfirmation(**MAIL_DATA)
 
 # Инициализация glpi
-glpi = GLPIInterface(**GLPI_DATA)
+glpi = GLPIBase(**GLPI_DATA)
 glpi_session_manager = GLPISessionManager(glpi)
-glpi_service = TicketBuilder(glpi_session_manager)
+glpi_service = GLPIService(glpi_session_manager)

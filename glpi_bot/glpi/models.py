@@ -9,44 +9,6 @@ from glpi import GLPIBase
 logger = logging.getLogger(__name__)
 
 
-class GLPIInterface(GLPIBase):
-    def make_request(self, method: str, endpoint: str, json_data: Optional[dict]):
-        """
-        Выполнение запроса к API GLPI
-        :param method: HTTP метод (GET, POST, PUT, DELETE)
-        :param endpoint: Конечная точка API (например, 'Ticket')
-        :param json_data: Данные для отправки
-        :return: Ответ API
-        """
-
-        url = f"{self.url}/{endpoint}"
-        headers = {
-            'Session-Token': self.session_token,
-            'App-Token': self.app_token,
-            'Content-Type': 'application/json'
-        }
-
-        try:
-            response = requests.request(
-                method.upper(),
-                url,
-                headers=headers,
-                json=json_data
-            )
-            response.raise_for_status()
-            return response.json()
-
-        except requests.exceptions.HTTPError as e:
-            error_msg = f"HTTP Error {e.response.status_code}: {e.response.text}"
-            logger.error(error_msg)
-            raise ConnectionError(error_msg) from e
-
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Ошибка API запроса: {str(e)}"
-            logger.error(error_msg)
-            raise ConnectionError() from e
-
-
 class GLPIUser:
     def __init__(self, **kwargs):
         self.login = kwargs['1']
@@ -58,3 +20,50 @@ class GLPIUser:
 
     def get_id_company(self) -> int:
         ...
+
+
+class GLPIInterface(GLPIBase):
+    """Сервис для взаимодействия с GLPI"""
+    def create_ticket(self, **data) -> dict:
+        """Создание заявки"""
+        ticket_data = {"input": data}
+        return self.make_request("POST", "Ticket", json_data=ticket_data)
+
+    def get_user(self, login: str) -> Optional[GLPIUser]:
+        """Получение пользователя GLPI"""
+        # Использую contains потомучто equals не работает
+        data = {
+            "criteria": [
+                {
+                    "field": 1,  # Обязательно должен быть хотя бы один критерий
+                    "searchtype": "equals",
+                    "value": login  # Пустое значение = все записи
+                }
+            ],
+            "forcedisplay": [1, 2, 3],  # Минимальный набор полей
+            "range": "0-1000",
+        }
+
+        responce = self.make_request("POST", "search/User", json_data=data)
+        if responce['totalcount'] == 0:
+            return None
+
+        # Отфильтровываю вывод до полного совпадения (костыль)
+        print(responce)
+        users = responce['data']
+        # print(users)
+        for user in users:
+            print(user)
+            if user["1"] == login:
+                return GLPIUser(**user)
+        return None
+
+    def assign_ticket(self, ticket_id: int, user_id: int):
+        """Назначение заявки на пользователя"""
+        # data = {
+        #     "input": {
+        #         "_users_id_assign": user_id
+        #     }
+        # }
+        # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
+        pass

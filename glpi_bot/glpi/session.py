@@ -4,7 +4,7 @@ import logging
 import requests
 from typing import Optional
 from datetime import datetime, timedelta
-from glpi import GLPIInterface
+from glpi import GLPIBase
 from contextlib import contextmanager
 
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class GLPISessionManager:
     """Контекстный менеджер для работы с GLPI API"""
 
-    def __init__(self, glpi: GLPIInterface):
+    def __init__(self, glpi: GLPIBase):
         self.glpi = glpi
         self._session_token: Optional[str]
         self._token_expires: Optional[datetime]
