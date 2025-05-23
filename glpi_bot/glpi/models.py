@@ -11,14 +11,16 @@ logger = logging.getLogger(__name__)
 
 class GLPIUser:
     def __init__(self, **kwargs):
-        self.login = kwargs['1']
-        self.id = kwargs['2']
-        self.organisation = kwargs['3']
+        self._login = kwargs['1']
+        self._id = kwargs['2']
+        self._organisation = kwargs['3']
 
-    def get_id(self) -> int:
-        return self.id
+    @property
+    def id(self) -> int:
+        return self._id
 
-    def get_id_company(self) -> int:
+    @property
+    def id_organisation(self) -> int:
         ...
 
 
