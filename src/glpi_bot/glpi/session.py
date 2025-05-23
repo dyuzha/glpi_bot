@@ -4,7 +4,7 @@ import logging
 import requests
 from typing import Optional
 from datetime import datetime, timedelta
-from glpi import GLPIBase
+from glpi_bot.glpi import GLPIBase
 from contextlib import contextmanager
 
 

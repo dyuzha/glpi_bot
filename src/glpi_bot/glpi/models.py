@@ -3,7 +3,7 @@
 import logging
 import requests
 from typing import Optional
-from glpi import GLPIBase
+from glpi_bot.glpi import GLPIBase
 
 
 logger = logging.getLogger(__name__)

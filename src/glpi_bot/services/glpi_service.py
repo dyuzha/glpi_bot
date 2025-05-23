@@ -4,7 +4,7 @@ import logging
 import requests
 from typing import Optional
 from datetime import datetime, timedelta
-from glpi import GLPIInterface, GLPIUser, GLPISessionManager
+from glpi_bot.glpi import GLPIInterface, GLPIUser, GLPISessionManager
 
 
 logger = logging.getLogger(__name__)
