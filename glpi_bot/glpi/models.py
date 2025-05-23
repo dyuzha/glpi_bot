@@ -38,7 +38,7 @@ class GLPIInterface(GLPIBase):
             "criteria": [
                 {
                     "field": 1,  # Обязательно должен быть хотя бы один критерий
-                    "searchtype": "equals",
+                    "searchtype": "contains",
                     "value": login  # Пустое значение = все записи
                 }
             ],
