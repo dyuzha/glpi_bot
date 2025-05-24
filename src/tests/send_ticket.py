@@ -1,12 +1,14 @@
-from glpi_bot.glpi.session import GLPISessionManager, GLPIBase
+from glpi_bot.glpi import GLPISessionManager
 from glpi_bot.services import GLPIService
 from glpi_bot.config_handlers import GLPI_DATA
 
 
 # Инициализация glpi
-glpi = GLPIBase(**GLPI_DATA)
-glpi_session_manager = GLPISessionManager(glpi)
+glpi_session_manager = GLPISessionManager(**GLPI_DATA)
 glpi_service = GLPIService(glpi_session_manager)
+
+
+login = "dyuzhev_mn"
 
 
 ticket_data = {
@@ -26,3 +28,5 @@ ticket_data = {
 
 # Создаем заявку в GLPI
 glpi_service.create_ticket(**ticket_data)
+
+

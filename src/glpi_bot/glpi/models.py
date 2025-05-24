@@ -25,10 +25,11 @@ class GLPIUser:
 
 
 class GLPIInterface(GLPIBase):
+
     def create_ticket(self, **data) -> dict:
         """Создание заявки"""
         ticket_data = {"input": data}
-        return self.make_request("POST", "Ticket", json_data=ticket_data)
+        return self.post(endpoint="Ticket", json_data=ticket_data)
 
     def get_user(self, login: str) -> Optional[GLPIUser]:
         """Получение пользователя GLPI"""
@@ -45,8 +46,7 @@ class GLPIInterface(GLPIBase):
             "range": "0-1000",
         }
 
-        responce = self.make_request("POST", "search/User", json_data=data)
-        print("responce: ", responce)
+        responce = self.post(endpoint="search/User", json_data=data)
         if responce['totalcount'] == 0:
             return None
 

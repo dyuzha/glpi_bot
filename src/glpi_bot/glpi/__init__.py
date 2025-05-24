@@ -1,9 +1,8 @@
 # glpi/__init__.py
 
 
-from .base import GLPIBase
-from .session import GLPISessionManager, GLPIInterface
-from .models import GLPIUser
+from .base import GLPIBase, GLPISessionManager
+from .models import GLPIUser, GLPIInterface
 
 
 __all__ = [

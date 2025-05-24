@@ -3,58 +3,69 @@
 import logging
 import requests
 from typing import Optional
-from datetime import datetime, timedelta
+from glpi_bot.glpi.session import GLPISessionManager
 
 
 logger = logging.getLogger(__name__)
 
 
 class GLPIBase:
-    def __init__(self, url: str, app_token: str, username: str, password: str):
-        """
-        :param glpi_url: URL GLPI (например, 'https://glpi.example.com/apirest.php')
-        :param app_token: App-Token из настроек GLPI
-        :param username: Логин пользователя API
-        :param password: Пароль пользователя
-        """
-        self.url = url.rstrip('/')
-        self.app_token = app_token
-        self.auth_data = {
-            'login': username,
-            'password': password,
-            'app_token': app_token
-        }
-        self.session_token: Optional[str] = None
-        self.token_expires: Optional[datetime] = None
+    """Базовый класс для работы с GLPI API"""
 
-    def make_request(self, method: str, endpoint: str, json_data: Optional[dict]):
+    def __init__(self, session_manager: GLPISessionManager):
+        self.session_manager = session_manager
+
+    def _make_request(self,
+                     method: str,
+                     endpoint: str,
+                     json_data: Optional[dict] = None,
+                     params: Optional[dict] = None,
+                     headers: Optional[dict] = None,
+                     timeout: int = 10):
         """
         Выполнение запроса к API GLPI
         :param method: HTTP метод (GET, POST, PUT, DELETE)
         :param endpoint: Конечная точка API (например, 'Ticket')
         :param json_data: Данные для отправки
+        :param timeout: Таймаут запроса в секундах
         :return: Ответ API
+        :raises: ConnectionError при ошибках соединения или API
         """
+        if not self.session_manager._session_token:
+            raise ConnectionError("Сессия не найдена")
 
-        url = f"{self.url}/{endpoint}"
-        headers = {
-            'Session-Token': self.session_token,
-            'App-Token': self.app_token,
-            'Content-Type': 'application/json'
+        url = f"{self.session_manager.url}/{endpoint}"
+
+        deffault_headers = {
+            'session-token': self.session_manager._session_token,
+            'app-token': self.session_manager._app_token,
         }
+        final_headers = {**deffault_headers, **(headers or {})}
 
         try:
             response = requests.request(
-                method.upper(),
-                url,
-                headers=headers,
-                json=json_data
+                method=method.upper(),
+                url=url,
+                headers=final_headers,
+                json=json_data,
+                params=params,
+                timeout=timeout
             )
+
+            # Обработка 204 no Content
+            if response.status_code == 204:
+                return {}
+
             response.raise_for_status()
+
+            # Обработка пустого ответа
+            if not response.text.strip():
+                return {}
+
             return response.json()
 
         except requests.exceptions.HTTPError as e:
-            error_msg = f"HTTP Error {e.response.status_code}: {e.response.text}"
+            error_msg = self._parse_error_response(e)
             logger.error(error_msg)
             raise ConnectionError(error_msg) from e
 
@@ -62,3 +73,52 @@ class GLPIBase:
             error_msg = f"Ошибка API запроса: {str(e)}"
             logger.error(error_msg)
             raise ConnectionError() from e
+
+    def _parse_error_response(self, error: requests.exceptions.HTTPError) -> str:
+        """Парсинг ошибки HTTP для получения деталей"""
+        try:
+            if error.response is None:
+                return f"HTTP Error: {str(error)}"
+
+            error_data = error.response.json()
+            return (f"HTTP Error {error.response.status_code}: "
+                    f"{error_data.get('message', error.response.text)}")
+        except ValueError:
+            return f"HTTP Error {error.response.status_code}: {error.response.text}"
+
+
+    def get(self,
+            endpoint: str,
+            params: Optional[dict] = None,
+            headers: Optional[dict] = None,
+            timeout: int = 10):
+
+        return self._make_request('GET', endpoint, params=params, headers=headers,
+                                 timeout=timeout)
+
+    def post(self,
+             endpoint: str,
+             json_data: Optional[dict],
+             timeout: int = 10):
+        headers = {'Content-Type': 'application/json'}
+
+        return self._make_request('POST', endpoint, json_data=json_data,
+                                 headers=headers, timeout=timeout)
+
+    def put(self,
+            endpoint: str,
+            json_data: Optional[dict] = None,
+            headers: Optional[dict] = None,
+            timeout: int = 10):
+
+        return self._make_request('PUT', endpoint, json_data=json_data,
+                                 headers=headers, timeout=timeout)
+
+    def delete(self,
+               endpoint: str,
+               json_data: Optional[dict],
+               headers: Optional[dict] = None,
+               timeout: int = 10):
+
+        return self._make_request('DELETE', endpoint, json_data=json_data,
+                                 headers=headers, timeout=timeout)
