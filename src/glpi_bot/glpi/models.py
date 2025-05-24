@@ -47,6 +47,7 @@ class GLPIInterface(GLPIBase):
         }
 
         responce = self.post(endpoint="search/User", json_data=data)
+        logger.info(f"responce: {responce}")
         if responce['totalcount'] == 0:
             return None
 
