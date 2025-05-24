@@ -10,7 +10,7 @@ from glpi_bot.glpi import GLPIInterface, GLPIUser, GLPISessionManager
 logger = logging.getLogger(__name__)
 
 
-class GLPIService(GLPIInterface):
+class GLPIService:
     """Класс для составления заявок"""
     # Пробросить id источника запросов в конфиг
 
@@ -20,7 +20,7 @@ class GLPIService(GLPIInterface):
     def create_ticket(self, **data):
         # Получаем пользователя glpi
         with self.session_manager.get_session() as session:
-            user = self.get_user(data["login"])
+            user = session.glpi.get_user(data["login"])
         if user is None:
             raise ValueError
 
@@ -37,4 +37,4 @@ class GLPIService(GLPIInterface):
         del data["login"]
 
         # Создаем тикет с обновленными данными
-        return super().create_ticket(**data)
+        return session.glpi.create_ticket(**data)

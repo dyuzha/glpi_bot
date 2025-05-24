@@ -2,8 +2,8 @@
 
 
 from .base import GLPIBase
-from .session import GLPISessionManager
-from .models import GLPIInterface, GLPIUser
+from .session import GLPISessionManager, GLPIInterface
+from .models import GLPIUser
 
 
 __all__ = [
