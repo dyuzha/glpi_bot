@@ -1,17 +1,12 @@
-from database import User, SessionManager
+from glpi_bot.database import User, DBSessionManager
 import logging
 
 
 logger = logging.getLogger(__name__)
 
 
-# db_path = DB['path']
-# os.makedirs(os.path.dirname(db_path), exist_ok=True)
-# engine = create_engine(f"sqlite:///{db_path}")
-
-
-class DBInterface:
-    def __init__(self, session_manager: SessionManager):
+class DBService:
+    def __init__(self, session_manager: DBSessionManager):
         self.session_manager = session_manager
 
     def save_user(self, telegram_id: int, login: str):

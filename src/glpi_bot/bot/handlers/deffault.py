@@ -1,11 +1,11 @@
 import logging
 from aiogram import types, F
 from aiogram.filters import Command, StateFilter
-from bot.keyboards import main_kb
-from bot import dp
-from services import db_interface
+from glpi_bot.bot.keyboards import main_kb
+from glpi_bot.bot import dp
+from glpi_bot.services import db_service
 from aiogram.fsm.context import FSMContext
-from bot.states import Base, AuthStates
+from glpi_bot.bot.states import BaseStates, AuthStates
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ async def cmd_begin(message: types.Message, state: FSMContext):
 
         # Получаем логин из БД
         try:
-            login = db_interface.get_login(telegram_id=user_id)
+            login = db_service.get_login(telegram_id=user_id)
         except Exception as e:
             logger.error(f"Database error for user {user_id}: {str(e)}")
             await message.answer("Произошла ошибка при проверке авторизации. \
@@ -66,7 +66,7 @@ async def cmd_begin(message: types.Message, state: FSMContext):
                 reply_markup=main_kb()
             )
             await state.update_data(login=login)
-            await state.set_state(Base.START_CREATE_TICKET)
+            await state.set_state(BaseStates.COMPLETE_AUTORISATION)
 
     except Exception as e:
         logger.error(f"Unexpected error in start command for user {user_id if 'user_id' in locals() else 'unknown'}: {str(e)}")
