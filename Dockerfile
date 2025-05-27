@@ -40,8 +40,8 @@ RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/
 COPY ./data/certs/* /usr/local/share/ca-certificates/
 
 # Обновление сертификатов
-RUN update-ca-certificates
-RUN pip install certifi
+# RUN update-ca-certificates
+# RUN pip install certifi
 
 
 WORKDIR /src
