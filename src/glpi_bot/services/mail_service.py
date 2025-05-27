@@ -57,14 +57,10 @@ class EmailConfirmation():
 
         # Настройка SSL контекста
         context = ssl.create_default_context()
-        # try:
-        # Пытаемся использовать системные сертификаты
+        # Используем системные сертификаты
         context.load_default_certs()
-        # except:
-        #     # Fallback на certifi если системные недоступны
-        #     context = ssl.create_default_context(cafile=certifi.where())
-        #
-        # Выключает проверку TLS (Для тестов, если на хосте нет корневых certs)
+
+        # Выключает проверку TLS (Для тестов, если на хосте приложения нет корневых certs)
         # context = ssl._create_unverified_context()
 
         try:
@@ -82,10 +78,11 @@ class EmailConfirmation():
                 except Exception as e:
                     logger.warning("Неудачная авторизация на SMTP сервере")
 
-                await server.send_message(msg)
+                else:
+                    await server.send_message(msg)
+                    logger.info(f"Письмо с кодом подтверждения успешно \
+отправлено на {msg['To']}")
 
-            logger.info(f"Письмо с кодом подтверждения успешно отправлено \
-                    на {msg['To']}")
             return code
         except Exception as e:
             logger.warning(f"Ошибка при отправке письма на {msg['To']}: {e}")

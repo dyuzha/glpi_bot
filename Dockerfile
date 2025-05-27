@@ -36,14 +36,6 @@ FROM python:3.10-slim AS production
 # Установка корневых сертификатов
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Копируем дополнительные сертификаты (если есть)
-COPY ./data/certs/* /usr/local/share/ca-certificates/
-
-# Обновление сертификатов
-# RUN update-ca-certificates
-# RUN pip install certifi
-
-
 WORKDIR /src
 
 # Устанавливаем зависимости
@@ -57,6 +49,9 @@ COPY ./src/main.py .
 # Копируем скрипты и делаем их исполняемыми
 COPY ./scripts ./scripts
 RUN chmod +x scripts/*.sh
+
+# Копируем дополнительные сертификаты (если есть)
+COPY ./data/certs/* /usr/local/share/ca-certificates/
 
 # Создаем папку для конфигов
 RUN mkdir -p /configs
