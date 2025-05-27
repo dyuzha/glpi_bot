@@ -4,12 +4,14 @@ import logging
 
 logger = logging.getLogger(__name__)  # Используем __name__ для автоматического определения имени модуля
 
+
 class BaseStates(StatesGroup):
     WAITING_AUTORISATION = State()
     COMPLETE_AUTORISATION = State()
 
 class TicketCreation(StatesGroup):
     waiting_for_type = State()
+    waiting_for_category = State()
     waiting_for_title = State()
     waiting_for_description = State()
     confirm_data = State()

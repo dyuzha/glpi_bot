@@ -36,6 +36,16 @@ def type_kb():
         resize_keyboard=True
     )
 
+def category_kb():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="ДА"), KeyboardButton(text="Нет")],
+            [KeyboardButton(text="❌ Отмена"), KeyboardButton(text="🔙 Назад")],
+        ],
+        resize_keyboard=True
+    )
+
+
 def auth_code_kb():
     return ReplyKeyboardMarkup(
         keyboard=[

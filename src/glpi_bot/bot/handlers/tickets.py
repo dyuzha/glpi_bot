@@ -20,6 +20,11 @@ SELECT_WILL_TYPE_TICKET = (
     "🐛 <b>Инцидент</b> — если что-то сломалось\n"
     "📋 <b>Запрос</b> — если вам что-то нужно"
 )
+
+SELECT_WILL_CATEGORY_TICKET = (
+    "Ваша проблема связана с работой внутри 1С?"
+)
+
 INPUT_WILL_HEAD = (
     "📝 Введите краткий заголовок заявки "
     "(например: 'Проблема с принтером'):"
@@ -40,7 +45,8 @@ INPUT_WILL_REPEAT_DESCRIPTION = "Редактируем описание. Вве
 CHANGE_WILL_TYPE_TICKET = "Пожалуйста, выберите тип заявки кнопками ниже:"
 
 RETURN_TO_MAIN_MENU = "Вы вернулись в главное меню"
-CHANGE_TYPE_TICKET = "Вы вернулись к выбору типа заявки"
+RETURN_TYPE_TICKET = "Вы вернулись к выбору типа заявки"
+RETURN_TO_CATEGORY_TICKET = "Вы вернулись к выбору категории заявки"
 
 INVALID_HEADER = (
     "❌ Заголовок должен содержать минимум 5 символов. "
@@ -54,6 +60,7 @@ ERROR_CREATE_TICKET = (
     "❌ Произошла ошибка при создании заявки. "
     "Пожалуйста, попробуйте позже."
 )
+
 
 @dp.message(F.text == "Создать заявку", BaseStates.COMPLETE_AUTORISATION)
 async def start_ticket_creation(message: types.Message, state: FSMContext):
@@ -69,13 +76,53 @@ async def start_ticket_creation(message: types.Message, state: FSMContext):
 
 
 @dp.message(TicketCreation.waiting_for_type)
-async def start_ticket_build(message: types.Message, state: FSMContext):
-    """Обработка выбора типа заявки и переход к вводу заголовка"""
-    logger.debug("Переход к выбору типа заявки")
+async def process_type(message: types.Message, state: FSMContext):
+    """Обработка выбора категории заявки и переход к вводу заголовка"""
+    logger.debug("Переход к выбору категории заявки")
 
     # Сделать match/case
     if message.text == BACK_KEY:
-        await message.answer(RETURN_TO_MAIN_MENU, reply_markup=main_kb())
+        await message.answer(RETURN_TO_CATEGORY_TICKET, reply_markup=type_kb())
+        await state.clear()
+        return
+
+    if message.text == DISABLE_KEY:
+        await cancel_creation(message, state)
+        return
+
+    await select_type(message=message, state=state)
+
+    await message.answer(INPUT_WILL_HEAD, reply_markup=back_kb())
+    await state.set_state(TicketCreation.waiting_for_title)
+
+
+async def select_type(message: types.Message, state: FSMContext):
+    # Определяем тип заявки
+    type_ticket = None
+    if message.text == "Инцидент":
+        logger.debug("Выбран пункт Инцидент")
+        type_ticket = 1
+    elif message.text == "Запрос":
+        logger.debug("Выбран пункт Запрос")
+        type_ticket = 2
+    else:
+        await message.answer(CHANGE_WILL_TYPE_TICKET)
+        logger.debug(f"Некорректный ввод: {message.text}")
+        return
+
+    # Сохраняем тип заявки в состоянии
+    await state.update_data(type=type_ticket)
+    logger.debug(f"Тип заявки сохранен в состоянии {type_ticket}")
+
+
+@dp.message(TicketCreation.waiting_for_category)
+async def select_category(message: types.Message, state: FSMContext):
+    """Обработка выбора категории заявки и переход к вводу заголовка"""
+    logger.debug("Переход к выбору категории заявки")
+
+    # Сделать match/case
+    if message.text == BACK_KEY:
+        await message.answer(RETURN_TO_CATEGORY_TICKET, reply_markup=type_kb())
         await state.clear()
         return
 
@@ -113,7 +160,7 @@ async def process_title(message: types.Message, state: FSMContext):
 
     if message.text == BACK_KEY:
         await message.answer(
-            CHANGE_TYPE_TICKET,
+            RETURN_TYPE_TICKET,
             reply_markup=type_kb()
         )
         logger.debug("Переход на шаг назад (Выбор типа заявки)")
@@ -251,7 +298,7 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
 
 
 @dp.message(Command("cancel"))
-@dp.message(F.text.lower() == DISABLE_KEY)
+@dp.message(F.text.lower() == DISABLE_KEY, )
 async def cancel_creation(message: types.Message, state: FSMContext):
     """Отмена создания заявки"""
     await state.clear()
