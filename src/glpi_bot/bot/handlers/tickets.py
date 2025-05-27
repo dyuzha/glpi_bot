@@ -10,6 +10,9 @@ from glpi_bot.bot.states import TicketCreation, BaseStates
 
 logger = logging.getLogger(__name__)
 
+C_CATEGORY_ID = 19
+IT_CATEGORY_ID = 74
+
 
 DISABLE_KEY = "❌ Отмена"
 COMPLETE_KEY = "✅ Подтвердить"
@@ -42,7 +45,8 @@ INPUT_WILL_DISCRIPTION = (
 )
 INPUT_WILL_REPEAT_DESCRIPTION = "Редактируем описание. Введите новый текст:"
 
-CHANGE_WILL_TYPE_TICKET = "Пожалуйста, выберите тип заявки кнопками ниже:"
+INVALID_TYPE = "Пожалуйста, выберите тип заявки кнопками ниже:"
+INVALID_CATEGORY = "Пожалуйста, выберите категорию кнопками ниже:"
 
 RETURN_TO_MAIN_MENU = "Вы вернулись в главное меню"
 RETURN_TYPE_TICKET = "Вы вернулись к выбору типа заявки"
@@ -76,13 +80,10 @@ async def start_ticket_creation(message: types.Message, state: FSMContext):
 
 
 @dp.message(TicketCreation.waiting_for_type)
-async def process_type(message: types.Message, state: FSMContext):
-    """Обработка выбора категории заявки и переход к вводу заголовка"""
-    logger.debug("Переход к выбору категории заявки")
+async def init_select_type(message: types.Message, state: FSMContext):
 
-    # Сделать match/case
     if message.text == BACK_KEY:
-        await message.answer(RETURN_TO_CATEGORY_TICKET, reply_markup=type_kb())
+        await message.answer(RETURN_TO_MAIN_MENU, reply_markup=main_kb())
         await state.clear()
         return
 
@@ -92,6 +93,7 @@ async def process_type(message: types.Message, state: FSMContext):
 
     await select_type(message=message, state=state)
 
+    # Переключение на сл состояние
     await message.answer(INPUT_WILL_HEAD, reply_markup=back_kb())
     await state.set_state(TicketCreation.waiting_for_title)
 
@@ -106,7 +108,7 @@ async def select_type(message: types.Message, state: FSMContext):
         logger.debug("Выбран пункт Запрос")
         type_ticket = 2
     else:
-        await message.answer(CHANGE_WILL_TYPE_TICKET)
+        await message.answer(INVALID_TYPE)
         logger.debug(f"Некорректный ввод: {message.text}")
         return
 
@@ -116,13 +118,11 @@ async def select_type(message: types.Message, state: FSMContext):
 
 
 @dp.message(TicketCreation.waiting_for_category)
-async def select_category(message: types.Message, state: FSMContext):
+async def init_select_category(message: types.Message, state: FSMContext):
     """Обработка выбора категории заявки и переход к вводу заголовка"""
-    logger.debug("Переход к выбору категории заявки")
 
-    # Сделать match/case
     if message.text == BACK_KEY:
-        await message.answer(RETURN_TO_CATEGORY_TICKET, reply_markup=type_kb())
+        await message.answer(RETURN_TYPE_TICKET, reply_markup=type_kb())
         await state.clear()
         return
 
@@ -130,21 +130,27 @@ async def select_category(message: types.Message, state: FSMContext):
         await cancel_creation(message, state)
         return
 
+    await select_category(message=message, state=state)
+
+
+async def select_category(message: types.Message, state: FSMContext):
+    logger.debug("Переход к выбору категории заявки")
     # Определяем тип заявки
-    type_ticket = None
-    if message.text == "Инцидент":
-        logger.debug("Выбран пункт Инцидент")
-        type_ticket = 1
-    elif message.text == "Запрос":
-        logger.debug("Выбран пункт Запрос")
-        type_ticket = 2
+
+    select_category = None
+    if message.text == "1":
+        logger.debug("Выбран пункт 1с")
+        category_ticket = 1
+    elif message.text == "2":
+        logger.debug("Выбран пункт ИТ")
+        category_ticket = 2
     else:
-        await message.answer(CHANGE_WILL_TYPE_TICKET)
+        await message.answer(INVALID_CATEGORY)
         logger.debug(f"Некорректный ввод: {message.text}")
         return
 
     # Сохраняем тип заявки в состоянии
-    await state.update_data(type=type_ticket)
+    await state.update_data(category_ticket=type_ticket)
     logger.debug(f"Тип заявки сохранен в состоянии {type_ticket}")
     await message.answer(
         INPUT_WILL_HEAD,
@@ -256,7 +262,7 @@ async def confirm_ticket(message: types.Message, state: FSMContext):
                 # "impact": 3, # Влияние (1-5)
                 # "priority": 3, # Приоритет (1-5)
                 # "requesttypes_id": 1, # Источник запроса
-                "itilcategories_id": 1, # ID Категории,
+                "itilcategories_id": data['itilcategories_id'], # ID Категории,
                 # "_users_id_requester": 291, # ID пользователя-заявителя
                 # "entities_id": 10  # ID организации (0 для корневой)
             }

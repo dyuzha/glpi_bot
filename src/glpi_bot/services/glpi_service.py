@@ -48,20 +48,7 @@ class GLPITicketManager(GLPIService):
         super().__init__(session_manager)
 
     def send_ticket(self) -> dict:
-         with self.session_manager.get_session() as session:
-            # Собираем заявку
-            glpi_interface = self.get_glpi_interface(session)
-            self._set_users_id_requester_and_entities_id(glpi_interface)
-            data = self._to_dict()
-            # Отправляем заявку
-            return glpi_interface.create_ticket(**data)
-
-    def set_data(self, login: str, name: str, content: str, type: int,
-                itilcategories_id: int):
-        self.name = name
-        self.content = content
-        self.type = type
-        self.itilcategories_id = itilcategories_id
+         with self.session_manager.get_session() as session
         # self.organisation = organisation
         self.login = login
 

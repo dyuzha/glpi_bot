@@ -38,6 +38,7 @@ fi
 docker run -d \
   -v "${GLPI_TG_CONFIG_DIR}:/configs" \
   -v "${GLPI_TG_DATA_DIR}:/data" \
+    -v "${GLPI_TG_DATA_DIR}/certs:/usr/local/share/ca-certificates" \
   --name gbc \
   glpi_bot
 
