@@ -37,7 +37,7 @@ FROM python:3.10-slim AS production
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Копируем дополнительные сертификаты (если есть)
-# COPY ./certs/*.crt /usr/local/share/ca-certificates/
+COPY ./data/certs/* /usr/local/share/ca-certificates/
 
 # Обновление сертификатов
 RUN update-ca-certificates
