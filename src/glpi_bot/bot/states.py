@@ -22,3 +22,4 @@ class AuthStates(StatesGroup):
     CODE = State()
     CODE_HANDLER = State()
     SUCCESS = State()
+
