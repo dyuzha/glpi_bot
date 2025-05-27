@@ -1,6 +1,4 @@
-FROM python:3.9-slim AS builder
-
-WORKDIR /glpi_bot
+FROM python:3.10-slim AS builder
 
 LABEL maintainer="Dyuzhev Matvey"
 
@@ -23,8 +21,9 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 # Устанавливаем плагин poetry
 RUN poetry self add poetry-plugin-export
 
+WORKDIR /src/glpi_bot
+
 # Сначала копируем только файлы зависимостей (Для кеширования)
-WORKDIR /glpi_bot
 COPY ./pyproject.toml ./poetry.lock ./
 
 # Генерируем requirements.txt с разделением dev и prod
@@ -45,14 +44,15 @@ RUN update-ca-certificates
 RUN pip install certifi
 
 
-WORKDIR /glpi_bot
+WORKDIR /src
 
 # Устанавливаем зависимости
-COPY --from=builder /glpi_bot/requirements.txt .
+COPY --from=builder /src/glpi_bot/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем остальные файлы приложения
-COPY . .
+COPY ./src/glpi_bot ./glpi_bot
+COPY ./src/main.py .
 
 # Копируем скрипты и делаем их исполняемыми
 COPY ./scripts ./scripts
@@ -70,4 +70,4 @@ ENV GLPI_TG_MAIL_CONF=/configs/mail_config.ini
 ENV GLPI_TG_SETTINGS=/configs/settings.ini
 
 # Запускаем приложение
-CMD ["python", "./glpi_bot/main.py"]
+CMD ["python", "main.py"]

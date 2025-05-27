@@ -1,9 +1,8 @@
-from config_handlers import setup_logging
-from bot import bot, dp, set_bot_commands
+from glpi_bot.config_handlers import setup_logging
+from glpi_bot.bot import bot, dp, set_bot_commands
 
 # Инициализация логирования ДО всего остального
 logger = setup_logging()
-
 
 async def on_startup():
     """Действия при запуске бота"""

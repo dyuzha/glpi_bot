@@ -4,8 +4,8 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from config_handlers import TELEGRAM_TOKEN
-from .middlewares import AuthMiddleware
+from glpi_bot.config_handlers import TELEGRAM_TOKEN
+# from .middlewares import AuthMiddleware
 from .models import AuthState
 from aiogram.fsm.storage.memory import MemoryStorage
 

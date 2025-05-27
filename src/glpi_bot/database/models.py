@@ -1,8 +1,7 @@
 # database/models.py - Модели
 
 from sqlalchemy import Column, Integer, String
-from database import Base, Database
-from contextlib import contextmanager
+from glpi_bot.database import Base
 import logging
 
 

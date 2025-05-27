@@ -1,6 +1,6 @@
 from aiogram import F
 from aiogram.filters import Command
-from bot.states import TicketCreation, AuthStates, Base
+from glpi_bot.bot.states import TicketCreation, AuthStates, BaseStates
 
 
 from .deffault import (

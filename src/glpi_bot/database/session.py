@@ -1,9 +1,9 @@
 # /database/session.py - Управление сессиями
 
 from contextlib import contextmanager
-from database import Database
+from glpi_bot.database import Database
 
-class SessionManager:
+class DBSessionManager:
     def __init__(self, database: Database):
         self.db = database
 
