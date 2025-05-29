@@ -1,64 +1,33 @@
-# steps.py
-
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
-from aiogram.fsm.state import State
-from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
-from abc import ABC, abstractmethod
-from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
-
-
-DISABLE_KEY = "❌ Отмена"
-COMPLETE_KEY = "✅ Подтвердить"
-BACK_KEY = "🔙 Назад"
-EDIT_KEY = "✏️ Редактировать"
-
-
-class FormStep(ABC):
-    key = "abs"
-    show_key = "abs"
-
-    @property
-    @abstractmethod
-    def prompt(self) -> str:
-        """Промт для текущего шага."""
-        pass
-
-    @abstractmethod
-    async def handle_input(self, message: Message, state: FSMContext):
-        """Обработчик ввода для текущего шага."""
-        pass
-
-    def kb(self):
-        return ReplyKeyboardMarkup(
-            keyboard=[
-            [KeyboardButton(text=DISABLE_KEY), KeyboardButton(text=BACK_KEY)]
-            ],
-            resize_keyboard=True
-        )
-
+from glpi_bot.bot.ticket_handler.form_framework.step import FormStep
 
 class TypeStep(FormStep):
     key = "type"
     show_key = "Тип заявки"
+    prompt = "Выберите тип заявки"
 
-    @property
-    def prompt(self) -> str:
-        return "Введите первую переменную (A):"
+    def kb(self):
+        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+        return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Инцидент", callback_data="type:inc")],
+            [InlineKeyboardButton(text="Запрос", callback_data="type:req")],
+        ])
 
-    async def handle_input(self, message: Message, state: FSMContext):
-        await state.update_data({self.key: message.text})
-
+    async def handle_input(self, message, state):
+        await state.update_data(type=message.text)
 
 class CategoryStep(FormStep):
     key = "category"
     show_key = "Категория"
+    prompt = "Выберите категорию"
 
-    @property
-    def prompt(self) -> str:
-        return "Введите вторую переменную (B):"
+    def kb(self):
+        from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+        return InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Сеть", callback_data="cat:net")],
+            [InlineKeyboardButton(text="ПО", callback_data="cat:sw")],
+        ])
 
-    async def handle_input(self, message: Message, state: FSMContext):
-        await state.update_data({self.key: message.text})
+    async def handle_input(self, message, state):
+        await state.update_data(category=message.text)
+
 
