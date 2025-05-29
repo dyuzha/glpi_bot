@@ -6,6 +6,7 @@ from glpi_bot.bot import dp
 from glpi_bot.services import db_service
 from aiogram.fsm.context import FSMContext
 from glpi_bot.bot.states import BaseStates, AuthStates
+from  glpi_bot.bot.ticket_handler.handler import start_create_ticket, TicketStates
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ AUTH_REQUIRED_MESSAGE = (
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, state: FSMContext):
+    logger.debug(f"Обработка команды /start")
     # Отправляем приветсвенное сообщение
     await message.answer(START_MESSAGE)
     # Вручную вызываем следующий обработчик
@@ -36,6 +38,7 @@ async def handle_first_message(message: types.Message, state: FSMContext):
 
 @dp.message(Command("begin"))
 async def cmd_begin(message: types.Message, state: FSMContext):
+    logger.debug(f"Обработка команды /begin")
     try:
         user_id = message.from_user.id
         logger.info(f"User {user_id} started bot")
@@ -65,8 +68,10 @@ async def cmd_begin(message: types.Message, state: FSMContext):
                 "Воспользуйся кнопками ниже, для взаимодействия с ботом",
                 reply_markup=main_kb()
             )
-            await state.update_data(login=login)
-            await state.set_state(BaseStates.COMPLETE_AUTORISATION)
+            # await state.update_data(login=login)
+            await state.update_data(step_index = 0)
+            await state.set_state(TicketStates.create_ticket)
+            await start_create_ticket(message=message, state=state)
 
     except Exception as e:
         logger.error(f"Unexpected error in start command for user {user_id if 'user_id' in locals() else 'unknown'}: {str(e)}")

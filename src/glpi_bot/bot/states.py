@@ -20,3 +20,6 @@ class AuthStates(StatesGroup):
     CODE = State()
     CODE_HANDLER = State()
     SUCCESS = State()
+
+class TicketStates(StatesGroup):
+    create_ticket = State()

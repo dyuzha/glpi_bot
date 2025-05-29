@@ -16,6 +16,7 @@ if ($GLPI_TG_CONFIG_DIR -ne $null) {
 docker run -d `
     -v "${env:GLPI_TG_CONFIG_DIR}:/configs" `
     -v "${env:GLPI_TG_DATA_DIR}:/data" `
+    -v "${env:GLPI_TG_DATA_DIR}\certs:/usr/local/share/ca-certificates/" `
     --name gbc `
     glpi_bot
 
