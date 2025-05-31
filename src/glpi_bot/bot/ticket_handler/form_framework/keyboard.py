@@ -1,3 +1,4 @@
+# form_framework/keyboard
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from .step import FormStep
 from typing import List
@@ -17,7 +18,7 @@ class FormKeyboardBuilder:
 
     def get_buttons_for_step(self, step: FormStep) -> List[List[KeyboardButton]]:
         # Кастомные кнопки от шага
-        custom = step.get_custom_buttons()
+        custom = step.get_reply_custom_buttons()
         base = self.get_base_buttons(step)
         return custom + base
 

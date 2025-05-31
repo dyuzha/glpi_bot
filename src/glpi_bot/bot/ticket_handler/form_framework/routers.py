@@ -16,7 +16,7 @@ class FormRouter:
     def register(self, router: Router):
         router.message(F.text, self._is_start_command)(self._start)
         router.message(self.state)(self._handle_input)
-        router.callback_query(self.state)(self._handle_callback)
+        # router.callback_query(self.state)(self._handle_callback)
 
     def _is_start_command(self, message: Message) -> bool:
         return message.text.startswith(f"/{self.command}")
@@ -27,5 +27,10 @@ class FormRouter:
     async def _handle_input(self, message: Message, state: FSMContext):
         await self.flow.handle_input(message, state)
 
-    async def _handle_callback(self, call: CallbackQuery, state: FSMContext):
-        await self.flow.handle_callback(call, state)
+    async def start_flow(self, message: Message, state: FSMContext):
+        await state.set_state(self.state)
+        await state.update_data(step_index=0)
+        await self._start(message, state)
+
+    # async def _handle_callback(self, call: CallbackQuery, state: FSMContext):
+    #     await self.flow.handle_callback(call, state)

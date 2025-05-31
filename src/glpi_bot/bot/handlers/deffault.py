@@ -5,8 +5,8 @@ from glpi_bot.bot.keyboards import main_kb
 from glpi_bot.bot import dp
 from glpi_bot.services import db_service
 from aiogram.fsm.context import FSMContext
-from glpi_bot.bot.states import BaseStates, AuthStates
-from  glpi_bot.bot.ticket_handler.handler import start_create_ticket, TicketStates
+from glpi_bot.bot.states import AuthStates, MainStates
+from  glpi_bot.bot.ticket_handler.handler import TicketStates, start_flow
 
 logger = logging.getLogger(__name__)
 
@@ -64,15 +64,17 @@ async def cmd_begin(message: types.Message, state: FSMContext):
         # Иначе перенаправляем на составление заявки
         else:
             logger.info(f"User {user_id} already authorized as {login}")
+            await state.set_state(MainStates.have_register)
             await message.answer(
                 "Воспользуйся кнопками ниже, для взаимодействия с ботом",
                 reply_markup=main_kb()
             )
-            # await state.update_data(login=login)
-            await state.update_data(step_index = 0)
-            await state.set_state(TicketStates.create_ticket)
-            await start_create_ticket(message=message, state=state)
 
     except Exception as e:
         logger.error(f"Unexpected error in start command for user {user_id if 'user_id' in locals() else 'unknown'}: {str(e)}")
         await message.answer("Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже.")
+
+@dp.message(MainStates.have_register)
+async def main_menu(message: types.Message, state: FSMContext):
+    if message.text == "Создать заявку":
+        await start_flow(message, state)

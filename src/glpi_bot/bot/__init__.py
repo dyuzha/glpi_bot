@@ -8,7 +8,7 @@ from glpi_bot.config_handlers import TELEGRAM_TOKEN
 # from .middlewares import AuthMiddleware
 from .models import AuthState
 from aiogram.fsm.storage.memory import MemoryStorage
-from .ticket_handler import router as ticket_router
+from .ticket_handler.handler import router as ticket_router
 
 
 logger = logging.getLogger(__name__)

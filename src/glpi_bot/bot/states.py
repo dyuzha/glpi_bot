@@ -23,3 +23,7 @@ class AuthStates(StatesGroup):
 
 class TicketStates(StatesGroup):
     create_ticket = State()
+
+class MainStates(StatesGroup):
+    have_register = State()
+    need_register = State()
