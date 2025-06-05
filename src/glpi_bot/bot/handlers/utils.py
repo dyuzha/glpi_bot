@@ -44,7 +44,7 @@ async def add_step(state: FSMContext, prompt: str, keyboard=None):
     if len(stack) > 10:
         stack = stack[-10:]
 
-    logger.debug(f"stack_states: {[step["state"] for step in stack]}")
+    logger.debug(f"stack_states: {[step['state'] for step in stack]}")
     navigation_data["stack"] = stack
     await state.update_data(navigation_data=navigation_data)
 

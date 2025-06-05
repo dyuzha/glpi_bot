@@ -7,6 +7,7 @@ from glpi_bot.bot.keyboards import main_kb
 from glpi_bot.services import db_service
 from aiogram.fsm.context import FSMContext
 from glpi_bot.bot.states import BaseStates, AuthStates
+# from glpi_bot.bot import process_login
 
 
 logger = logging.getLogger(__name__)
@@ -48,10 +49,12 @@ async def main_menu(message: Message, state: FSMContext):
                                 "Попробуйте позже.")
         return
     if not have_register:
-        await state.set_state(BaseStates.waiting_autorisation)
-        await message.answer(AUTH_REQUIRED_MESSAGE, reply_markup=main_kb())
+        await state.set_state(AuthStates.LOGIN)
+        # await state.set_state(BaseStates.waiting_autorisation)
         await message.answer(AUTH_REQUIRED_MESSAGE, parse_mode="HTML",
                              reply_markup=ReplyKeyboardRemove())
+        # await process_login(message, state)
         return
-    await state.set_state(BaseStates.complete_autorisation)
+
+    await state.set_state(BaseStates.complete_autorisation )
     await message.answer(START_MESSAGE, reply_markup=main_kb())
