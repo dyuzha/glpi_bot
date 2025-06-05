@@ -51,7 +51,7 @@ COPY ./scripts ./scripts
 RUN chmod +x scripts/*.sh
 
 # Копируем дополнительные сертификаты (если есть)
-COPY ./data/certs/* /usr/local/share/ca-certificates/
+# COPY ./data/certs/* /usr/local/share/ca-certificates/
 
 # Создаем папку для конфигов
 RUN mkdir -p /configs
