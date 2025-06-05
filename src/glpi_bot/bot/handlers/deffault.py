@@ -1,13 +1,17 @@
 import logging
-from aiogram import types, F
+from aiogram import Router, types, F
 from aiogram.filters import Command, StateFilter
+from aiogram.types.message import Message
+from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from glpi_bot.bot.keyboards import main_kb
-from glpi_bot.bot import dp
 from glpi_bot.services import db_service
 from aiogram.fsm.context import FSMContext
 from glpi_bot.bot.states import BaseStates, AuthStates
 
+
 logger = logging.getLogger(__name__)
+router = Router()
+
 
 START_MESSAGE = (
     "👋 Привет! Я ПРОФИТ-бот для работы с GLPI.\n"
@@ -20,54 +24,34 @@ AUTH_REQUIRED_MESSAGE = (
     "(н-р: <code>ivanov_ii</code>):"
 )
 
-@dp.message(Command("start"))
-async def cmd_start(message: types.Message, state: FSMContext):
-    # Отправляем приветсвенное сообщение
-    await message.answer(START_MESSAGE)
-    # Вручную вызываем следующий обработчик
-    await cmd_begin(message, state)
 
-
-@dp.message(AuthStates.SUCCESS)
-@dp.message(StateFilter(None))
-async def handle_first_message(message: types.Message, state: FSMContext):
-    await cmd_begin(message, state)
-
-
-@dp.message(Command("begin"))
-async def cmd_begin(message: types.Message, state: FSMContext):
+def check_register(user_id: int):
     try:
-        user_id = message.from_user.id
-        logger.info(f"User {user_id} started bot")
-
-        # Получаем логин из БД
-        try:
-            login = db_service.get_login(telegram_id=user_id)
-        except Exception as e:
-            logger.error(f"Database error for user {user_id}: {str(e)}")
-            await message.answer("Произошла ошибка при проверке авторизации. \
-Попробуйте позже.")
-            return
-
-        # Если пользователь не найден, отправляем на регистрацию
-        if login is None:
-            await message.answer(
-                AUTH_REQUIRED_MESSAGE, parse_mode="HTML",
-                reply_markup=types.ReplyKeyboardRemove()
-            )
-            logger.info(f"User {user_id} needs authorization")
-            await state.set_state(AuthStates.LOGIN)
-
-        # Иначе перенаправляем на составление заявки
-        else:
-            logger.info(f"User {user_id} already authorized as {login}")
-            await message.answer(
-                "Воспользуйся кнопками ниже, для взаимодействия с ботом",
-                reply_markup=main_kb()
-            )
-            await state.update_data(login=login)
-            await state.set_state(BaseStates.COMPLETE_AUTORISATION)
-
+        login = db_service.get_login(telegram_id=user_id)
     except Exception as e:
-        logger.error(f"Unexpected error in start command for user {user_id if 'user_id' in locals() else 'unknown'}: {str(e)}")
-        await message.answer("Произошла непредвиденная ошибка. Пожалуйста, попробуйте позже.")
+        logger.error(f"Database error for user {user_id}: {str(e)}")
+        raise
+
+
+@router.message(Command("start"))
+async def cmd_start(message: Message, state: FSMContext):
+    await state.clear()
+    await main_menu(message, state)
+
+
+async def main_menu(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    try:
+        have_register = check_register(user_id)
+    except Exception:
+        await message.answer("Произошла ошибка при проверке авторизации. "
+                                "Попробуйте позже.")
+        return
+    if not have_register:
+        await state.set_state(BaseStates.waiting_autorisation)
+        await message.answer(AUTH_REQUIRED_MESSAGE, reply_markup=main_kb())
+        await message.answer(AUTH_REQUIRED_MESSAGE, parse_mode="HTML",
+                             reply_markup=ReplyKeyboardRemove())
+        return
+    await state.set_state(BaseStates.complete_autorisation)
+    await message.answer(START_MESSAGE, reply_markup=main_kb())
