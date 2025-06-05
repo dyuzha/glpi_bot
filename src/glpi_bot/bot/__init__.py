@@ -21,7 +21,7 @@ dp = Dispatcher(storage=storage)
 dp.include_router(tickets_router)
 
 # Регистрируем обработчики
-from .handlers import *
+# from .handlers import *
 
 # Регистрируем меню бота
 from .menu import set_bot_commands

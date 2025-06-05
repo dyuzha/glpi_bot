@@ -4,7 +4,6 @@ from glpi_bot.bot.states import  AuthStates, BaseStates
 
 from .deffault import (
     cmd_start,
-
 )
 
 from .authorization import (
