@@ -56,12 +56,12 @@ class EmailConfirmation():
 
 
         # Настройка SSL контекста
-        context = ssl.create_default_context()
+        # context = ssl.create_default_context()
         # Используем системные сертификаты
-        context.load_default_certs()
+        # context.load_default_certs()
 
         # Выключает проверку TLS (Для тестов, если на хосте приложения нет корневых certs)
-        # context = ssl._create_unverified_context()
+        context = ssl._create_unverified_context()
 
         try:
             logger.debug("Подключение к SMTP серверу")
