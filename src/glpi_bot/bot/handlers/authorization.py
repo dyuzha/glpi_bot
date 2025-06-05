@@ -1,11 +1,10 @@
 import logging
 from glpi_bot.services import db_service
-from aiogram import types, F
+from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
 from glpi_bot.bot.keyboards import auth_code_kb, succ_kb
-from glpi_bot.bot import dp, AuthState
+from glpi_bot.bot import AuthState
 from glpi_bot.bot.states import AuthStates
-from .deffault import cmd_begin
 from glpi_bot.services import mail_confirmation, get_user_mail
 from datetime import datetime
 from glpi_bot.services.exceptions import LDAPError, LDAPUserNotFound, LDAPMailNotFound
@@ -47,6 +46,7 @@ AUTHORIZATION_ERROR=(
     "Попробуйте позже или обратитесь в поддержку."
     )
 
+router = Router()
 
 async def get_auth_state(state: FSMContext) -> AuthState:
     data = await state.get_data()
@@ -65,7 +65,7 @@ async def send_code(mail):
     return code
 
 
-@dp.message(AuthStates.LOGIN, F.text != "Изменить логин")
+@router.message(AuthStates.LOGIN, F.text != "Изменить логин")
 async def process_login(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние LOGIN")
     auth_state = await get_auth_state(state)
@@ -84,7 +84,7 @@ async def process_login(message: types.Message, state: FSMContext):
     await login_handler(message, state)
 
 
-@dp.message(AuthStates.LOGIN_HANDLER, F.text != "Изменить логин")
+@router.message(AuthStates.LOGIN_HANDLER, F.text != "Изменить логин")
 async def login_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние LOGIN_HANDLER")
     auth_state = await get_auth_state(state)
@@ -243,7 +243,7 @@ async def code_handler(message: types.Message, state: FSMContext):
     await success_handler(message, state)
 
 
-@dp.message(AuthStates.CODE_HANDLER, F.text)
+@router.message(AuthStates.CODE_HANDLER, F.text)
 async def invalid_code_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Обработка нестандартного ответа")
     """Обработка нестандартного сообщения на запрос кода"""
@@ -263,7 +263,7 @@ async def invalid_code_handler(message: types.Message, state: FSMContext):
 должна быть равна {LENGTH_CODE}")
 
 
-@dp.message(AuthStates.SUCCESS, F.text)
+@router.message(AuthStates.SUCCESS, F.text)
 async def success_handler(message: types.Message, state: FSMContext):
     auth_state = await get_auth_state(state)
     await message.answer(
@@ -279,4 +279,3 @@ tg_id: {message.from_user.id}\nlogin: {auth_state.login}")
     except Exception as e:
         logger.warning(f"Error: {e}")
     await state.clear()
-    await cmd_begin()

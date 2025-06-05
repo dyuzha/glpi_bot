@@ -1,5 +1,5 @@
 import logging
-from aiogram import types
+from aiogram import Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from glpi_bot.bot import dp
@@ -7,7 +7,9 @@ from glpi_bot.services import db_service
 
 logger = logging.getLogger(__name__)
 
-@dp.message(Command("delete_me"), StateFilter('*'))
+router = Router()
+
+@router.message(Command("delete_me"), StateFilter('*'))
 async def delete_user(message: types.Message, state: FSMContext):
     """Удаляет пользователя из базы данных"""
     await state.clear()

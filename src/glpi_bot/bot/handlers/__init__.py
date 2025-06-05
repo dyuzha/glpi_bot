@@ -17,3 +17,8 @@ from .authorization import (
 from .admins import delete_user
 
 from .tickets import router as tickets_router
+from .authorization import router as authorization_router
+from .deffault import router as deffault_router
+from .admins import router as admins_router
+
+tickets_router.include_routers(deffault_router, authorization_router, admins_router)
