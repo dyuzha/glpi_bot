@@ -51,6 +51,7 @@ async def add_step(state: FSMContext, prompt: str, keyboard=None):
 
 async def default_handle(callback: CallbackQuery, state: FSMContext, prompt: str,
         keyboard: InlineKeyboardMarkup, next_state: Optional[State] = None):
+
     await add_step(state=state, prompt=prompt, keyboard=keyboard)
     if next_state:
         await state.set_state(next_state)

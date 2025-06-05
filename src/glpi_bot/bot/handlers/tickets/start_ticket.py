@@ -1,14 +1,16 @@
 import logging
-from aiogram import F, types
+from aiogram import F
 from aiogram.types import CallbackQuery, InlineKeyboardButton, Message, InlineKeyboardMarkup
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram import Router
-from glpi_bot.bot.handlers.deffault import BaseStates
-from glpi_bot.bot.handlers.utils import add_step, default_handle, register_step
-from glpi_bot.bot.states import TicketStates
+
+from glpi_bot.bot.handlers.utils import add_step, default_handle
+from glpi_bot.bot.states import TicketStates, BaseStates
 from glpi_bot.bot.text import *
 from bot.keyboards import incident_types_kb, request_types_kb
+
+# from glpi_bot.bot.handlers.deffault import BaseStates
 
 
 logger = logging.getLogger(__name__)
@@ -31,8 +33,11 @@ async def init_create_ticket(message: Message, state: FSMContext):
     prompt = SELECT_WILL_TYPE_TICKET
     keyboard = type_kb
 
+    # Добавляем текущий шаг (как-будто он был вызван с inline_keyboard и в type state)
     await state.set_state(TicketStates.type)
     await add_step(state, prompt=prompt, keyboard=keyboard)
+
+    # Запоминаем сообщение, чтобы его можно было всегда редактировать
     sent_msg = await message.answer(prompt, reply_markup=keyboard)
     await state.update_data(bot_message_id=sent_msg.message_id)
 

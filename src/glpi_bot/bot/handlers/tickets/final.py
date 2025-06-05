@@ -4,18 +4,17 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from glpi_bot.bot.handlers.tickets.models.dynamic_bot_message import DynamicBotMessage
-from bot.handlers.navigation import back_handler
-from bot.handlers.tickets import add_step
-from bot.states import OneCStates, TicketStates, FinalStates, BaseStates
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
-from bot.keyboards import base_buttons, confirm_kb, main_kb
-from bot.handlers.utils import default_handle, flash_message
+
+from glpi_bot.bot.handlers.tickets.base import back_handler
+from glpi_bot.bot.handlers.utils import add_step
+from glpi_bot.bot.states import FinalStates, BaseStates
+from glpi_bot.bot.keyboards import base_buttons, confirm_kb, main_kb
+from glpi_bot.bot.handlers.tickets import bot_message
 
 
 logger = logging.getLogger(__name__)
 router = Router()
-bot_message = DynamicBotMessage()
 
 
 @router.message(StateFilter(FinalStates.title))
