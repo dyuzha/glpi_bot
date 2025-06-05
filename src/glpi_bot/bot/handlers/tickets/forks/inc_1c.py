@@ -23,8 +23,8 @@ async def lic_handler(callback: CallbackQuery, state: FSMContext):
                                       )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[base_buttons])
-    await default_handle(callback, state, prompt, keyboard)
     await state.set_state(FinalStates.title)
+    await default_handle(callback, state, prompt, keyboard)
 
 
 @incident_1c_fork_maker.register_callback(name="obmen", text="Проблема с обменом")
@@ -39,5 +39,5 @@ async def obmen_handler(callback: CallbackQuery, state: FSMContext):
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[base_buttons])
 
-    await default_handle(callback, state, prompt, keyboard)
     await state.set_state(FinalStates.title)
+    await default_handle(callback, state, prompt, keyboard)
