@@ -154,7 +154,7 @@ async def login_handler(message: types.Message, state: FSMContext):
         await process_code(message, state)
 
 
-@dp.message(AuthStates.CODE, F.text)
+@router.message(AuthStates.CODE, F.text)
 async def process_code(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние CODE")
     auth_state = await get_auth_state(state)
@@ -193,7 +193,7 @@ async def process_code(message: types.Message, state: FSMContext):
         await state.set_state(AuthStates.CODE_HANDLER)
 
 
-@dp.message(AuthStates.CODE_HANDLER, F.text.func(
+@router.message(AuthStates.CODE_HANDLER, F.text.func(
     lambda text: text.isdigit() and len(text) == 4))
 async def code_handler(message: types.Message, state: FSMContext):
     logger.debug(f"Переход в состояние CODE_HANDLER")

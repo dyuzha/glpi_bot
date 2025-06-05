@@ -2,7 +2,6 @@ import logging
 from aiogram import Router, types
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
-from glpi_bot.bot import dp
 from glpi_bot.services import db_service
 
 logger = logging.getLogger(__name__)

@@ -34,11 +34,11 @@ async def back_handler(callback: CallbackQuery, state: FSMContext):
 
     keyboard_data = previous_state.get("keyboard")
     keyboard = None
-    logger.debug(
-            f"previous: <state: {previous_state["state"]}>"
+    # logger.debug(
+            # f'previous: <state: {previous_state["state"]}>'
             # f"keyboard: {previous_state["keyboard"]}, "
             # f"message: {previous_state["message"]}>"
-    )
+    # )
 
     if keyboard_data:
         try:
@@ -51,7 +51,7 @@ async def back_handler(callback: CallbackQuery, state: FSMContext):
         previous_state['message'],
         reply_markup=keyboard
     )
-    logger.debug(f"Back to: {previous_state["state"]}")
+    logger.debug(f"Back to: {previous_state['state']}")
 
     await state.update_data(navigation_data={"stack": stack})
     await callback.answer()
