@@ -5,8 +5,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 from glpi_bot.bot.handlers.utils import default_handle
 from glpi_bot.bot.states import FinalStates
 from glpi_bot.bot.keyboards import base_buttons
-from glpi_bot.bot.handlers.tickets.fork_makers import incident_1c_fork_maker
-from glpi_bot.bot.handlers.tickets import bot_message
+from glpi_bot.bot.handlers.tickets import bot_message, incident_1c_fork_maker
 
 
 logger = logging.getLogger(__name__)

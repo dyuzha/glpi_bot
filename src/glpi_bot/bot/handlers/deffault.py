@@ -32,6 +32,7 @@ def check_register(user_id: int):
     except Exception as e:
         logger.error(f"Database error for user {user_id}: {str(e)}")
         raise
+    return login
 
 
 @router.message(Command("start"))
@@ -42,13 +43,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
 async def main_menu(message: Message, state: FSMContext):
     user_id = message.from_user.id
-    try:
-        have_register = check_register(user_id)
-    except Exception:
-        await message.answer("Произошла ошибка при проверке авторизации. "
-                                "Попробуйте позже.")
-        return
-    if not have_register:
+    if not check_register(user_id):
         await state.set_state(AuthStates.LOGIN)
         # await state.set_state(BaseStates.waiting_autorisation)
         await message.answer(AUTH_REQUIRED_MESSAGE, parse_mode="HTML",

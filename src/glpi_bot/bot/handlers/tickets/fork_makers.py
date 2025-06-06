@@ -5,7 +5,7 @@ from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from glpi_bot.bot.handlers.tickets.models import DynamicBotMessage
-from glpi_bot.bot.handlers.tickets.models import BaseForkMaker
+# from glpi_bot.bot.handlers.tickets.models import BaseForkMaker
 from glpi_bot.bot.states import OneCStates, TicketStates, FinalStates, BaseStates
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 from glpi_bot.bot.keyboards import base_buttons
@@ -15,7 +15,7 @@ from glpi_bot.bot.handlers.utils import default_handle
 logger = logging.getLogger(__name__)
 router = Router()
 
-incident_1c_fork_maker = BaseForkMaker(base_buttons=base_buttons)
+# incident_1c_fork_maker = BaseForkMaker(base_buttons=base_buttons)
 
 
 @router.callback_query(F.data == "inc_1c",
