@@ -5,10 +5,8 @@ from aiogram.filters import Command, StateFilter
 from aiogram.types.message import Message
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from glpi_bot.bot.keyboards import main_kb
-# from glpi_bot.services import db_service
 from aiogram.fsm.context import FSMContext
 from glpi_bot.bot.states import BaseStates, AuthStates
-# from glpi_bot.bot import process_login
 from glpi_bot.services import DBService
 
 
@@ -41,11 +39,13 @@ def setup_entrypoint(db: DBService) -> Router:
 
     @router.message(Command("start"))
     async def cmd_start(message: Message, state: FSMContext):
+        logger.debug("Call cmd_start")
         await state.clear()
         await main_menu(message, state)
 
 
     async def main_menu(message: Message, state: FSMContext):
+        logger.debug("Call main_menu")
         user_id = message.from_user.id
 
         if not check_register(user_id):
