@@ -18,9 +18,8 @@ async def main():
     # glpi = services["glpi_service"]
     # ldap_func = services["ldap_func"]
 
-    create_bot(services)
-
-    # await dp.start_polling(bot, db, mail, glpi)
+    bot, dp, on_startup = create_bot(services)
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
