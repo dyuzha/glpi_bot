@@ -37,13 +37,6 @@ def setup_entrypoint(db: DBService) -> Router:
         return login
 
 
-    @router.message(Command("start"))
-    async def cmd_start(message: Message, state: FSMContext):
-        logger.debug("Call cmd_start")
-        await state.clear()
-        await main_menu(message, state)
-
-
     async def main_menu(message: Message, state: FSMContext):
         logger.debug("Call main_menu")
         user_id = message.from_user.id
@@ -58,5 +51,12 @@ def setup_entrypoint(db: DBService) -> Router:
 
         await state.set_state(BaseStates.complete_autorisation )
         await message.answer(START_MESSAGE, reply_markup=main_kb())
+
+
+    @router.message(Command("start"))
+    async def cmd_start(message: Message, state: FSMContext):
+        logger.debug("Call cmd_start")
+        await state.clear()
+        await main_menu(message, state)
 
     return router
