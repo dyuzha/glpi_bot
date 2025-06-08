@@ -1,9 +1,10 @@
-# bot.handler.models.fork_maker.py
+# bot/handler/models/fork_maker.py
 
-from typing import Callable, Dict, Optional
+from typing import Any, Callable, Coroutine, Coroutine, Dict, Optional
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from functools import partial
 
 
 class BaseForkMaker:
@@ -19,6 +20,29 @@ class BaseForkMaker:
             }
             return func
         return decorator
+
+    def register(self,
+                 name: str,
+                 text: str,
+                 handler: Callable[[CallbackQuery, FSMContext], Coroutine],
+                 kwargs: Optional[dict[str, Any]]
+                ):
+        if kwargs:
+            handler = partial(handler, **kwargs)
+        self._handlers[name] = {"handler": handler, "text": text }
+
+
+    def register_many(self, entries: list[tuple]):
+        for entry in entries:
+            try:
+                name, text, handler, *rest = entry
+                # if not callable(handler):
+                #     raise ValueError("handler должен быть вызываемым")
+                kwargs = rest[0] if rest else None
+                self.register(name, text, handler, kwargs)
+            except ValueError as e:
+                raise ValueError(f"Некорректная запись в entries: {entry}") from e
+
 
     async def __call__(self, callback: CallbackQuery, state: FSMContext):
         handler = self._handlers.get(callback.data) if callback.data else None

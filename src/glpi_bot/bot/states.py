@@ -21,8 +21,11 @@ class TicketStates(StatesGroup):
     incident = State()
     request = State()
 
-class OneCStates(StatesGroup):
+class FlowStates(StatesGroup):
     inc_1c = State()
+    inc_it = State()
+    req_1c = State()
+    req_it = State()
 
 class FinalStates(StatesGroup):
     description = State()

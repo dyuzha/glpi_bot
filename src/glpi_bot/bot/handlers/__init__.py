@@ -1,28 +1,36 @@
 # handlers/__init__.py
 
+from typing import Callable
 from aiogram import Dispatcher
 
-from .tickets import router as tickets_router, setup_tickets
-from .authorization import router as authorization_router, setup_authorization
-from .deffault import router as deffault_router, setup_deffault
+# from .tickets import setup_tickets
+from .tickets import router as setup_tickets
+from .authorization import setup_authorization
+from .entrypoint import setup_entrypoint
 from .admins import router as admins_router
+
 
 def register_handlers(
         dp: Dispatcher,
         db_service,
         mail_service,
         glpi_service,
+        ldap_func: Callable[[str], str]
     ):
 
     # Инъекция зависимостей в модули
-    setup_authorization(db_service, mail_service)
-    setup_deffault(db_service)
-    setup_tickets(glpi_service)
+    authorization_router = setup_authorization(
+            db_service,
+            mail_service,
+            ldap_func
+    )
+    entry_point_router = setup_entrypoint(db_service)
+    tickets_router = setup_tickets(glpi_service)
 
     # Вложенность роутеров
     dp.include_routers(
             tickets_router,
-            deffault_router,
+            entry_point_router,
             authorization_router,
             admins_router
         )

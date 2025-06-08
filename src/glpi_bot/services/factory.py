@@ -7,6 +7,7 @@ from glpi_bot.glpi import GLPISessionManager
 from .db_service import DBService
 from .mail_service import EmailConfirmation
 from .glpi_service2_0 import GLPITicketManager, OrganisationCache
+from .ad import get_user_mail
 
 
 def create_db_service():
@@ -41,4 +42,5 @@ def create_services():
         "db_service": db_service,
         "mail_confirmation": mail_confirmation,
         "glpi_service": glpi_service,
+        "ldap_func": get_user_mail,
     }
