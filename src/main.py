@@ -10,11 +10,17 @@ logger = setup_logging()
 
 async def main():
     logger.info("Starting bot")
+
     services = create_services()
 
-    await on_startup()
+    # db = services["db_service"]
+    # mailer = services["mail_confirmation"]
+    # glpi = services["glpi_service"]
+    # ldap_func = services["ldap_func"]
 
-    await dp.start_polling(bot, db, mail, glpi)
+    create_bot(services)
+
+    # await dp.start_polling(bot, db, mail, glpi)
 
 
 if __name__ == "__main__":
