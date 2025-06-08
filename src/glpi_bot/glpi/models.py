@@ -47,11 +47,8 @@ class GLPIInterface(GLPIBase):
             return None
 
         # Отфильтровываю вывод до полного совпадения (костыль)
-        print(responce)
         users = responce['data']
-        # print(users)
         for user in users:
-            print(user)
             if user["1"] == login:
                 return GLPIUser(**user)
         return None
@@ -100,13 +97,3 @@ class GLPIInterface(GLPIBase):
         except Exception as e:
             logger.error(f"Ошибка при получении списка организаций: {e}")
             raise
-
-    def assign_ticket(self, ticket_id: int, user_id: int):
-        """Назначение заявки на пользователя"""
-        # data = {
-        #     "input": {
-        #         "_users_id_assign": user_id
-        #     }
-        # }
-        # return self.conn.make_request("PUT", f"Ticket/{ticket_id}", json=data)
-        pass

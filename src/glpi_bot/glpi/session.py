@@ -41,7 +41,7 @@ class GLPISessionManager:
             logger.error(f"Ошибка во время работы сессии: {e}")
             raise
         finally:
-            self._close_session
+            self._close_session()
 
 
     def _force_kill_previous_session(self):
@@ -75,11 +75,9 @@ class GLPISessionManager:
 
             self._session_token = response.json().get('session_token')
             logger.info(f"Получен токен: {self._session_token}")
-            print(f"Получен токен: {self._session_token}")
             # Установка времени жизни токена
             self._token_expires = datetime.now() + timedelta(minutes=5)
             logger.info(f"Сессия успешно открыта")
-            print("Сессия успешно открыта")
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Ошибка подключения к GLPI: {e}", exc_info=True)

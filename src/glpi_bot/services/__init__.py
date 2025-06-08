@@ -1,5 +1,4 @@
-# configs
-from glpi_bot.config_handlers import MAIL_DATA, GLPI_DATA
+# servises/__init__.py
 
 # db
 from .db_service import DBService
@@ -7,24 +6,25 @@ from glpi_bot.database import Database, Base, DBSessionManager
 
 # ad
 from .ad import get_user_mail
-from .async_ad import AsyncLDAPService
+# from .async_ad import AsyncLDAPService
 
 # # mail
 from .mail_service import EmailConfirmation
 
 # glpi
 from glpi_bot.glpi import GLPISessionManager
-from .glpi_service import GLPITicketManager
+from .glpi_service2_0 import GLPITicketManager, OrganisationCache
 
-# # Инициализация бд
-db = Database('sqlite:////data/users.db')
-db.create_tables(Base)
-db_session_manager = DBSessionManager(db)
-db_service = DBService(db_session_manager)
+# factory
+from .factory import create_services
 
-# # Инициализация mail
-mail_confirmation = EmailConfirmation(**MAIL_DATA)
 
-# Инициализация glpi
-glpi_session_manager = GLPISessionManager(**GLPI_DATA)
-glpi_service = GLPITicketManager(glpi_session_manager)
+__all__ = [
+        "DBService",
+        "get_user_mail",
+        "EmailConfirmation",
+        "GLPISessionManager",
+        "GLPITicketManager",
+        "OrganisationCache",
+        "create_services",
+]

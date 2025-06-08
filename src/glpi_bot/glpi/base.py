@@ -36,11 +36,11 @@ class GLPIBase:
 
         url = f"{self.session_manager.url}/{endpoint}"
 
-        deffault_headers = {
+        default_headers = {
             'session-token': self.session_manager._session_token,
             'app-token': self.session_manager._app_token,
         }
-        final_headers = {**deffault_headers, **(headers or {})}
+        final_headers = {**default_headers, **(headers or {})}
 
         try:
             response = requests.request(

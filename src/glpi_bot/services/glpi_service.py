@@ -17,7 +17,7 @@ class GLPIService:
     def __init__(self, session_manager: GLPISessionManager):
         self.session_manager = session_manager
         self._organisation_data: Optional[dict] = None
-        self._load_organisation_data()
+        # self._load_organisation_data()
 
     def get_glpi_interface(self, session) -> GLPIInterface:
         return GLPIInterface(session)

@@ -1,25 +1,28 @@
-from aiogram import F
-from aiogram.filters import Command
-from glpi_bot.bot.states import  AuthStates, BaseStates
+# handlers/__init__.py
 
-from .deffault import (
-    cmd_start,
-)
+from aiogram import Dispatcher
 
-from .authorization import (
-    process_login,
-    process_code,
-    login_handler,
-    code_handler,
-    success_handler,
-)
-
-# from glpi_bot.bot.handlers.tickets.forks import *
-
-from .admins import delete_user
-from .tickets import router as tickets_router
-from .authorization import router as authorization_router
-from .deffault import router as deffault_router
+from .tickets import router as tickets_router, setup_tickets
+from .authorization import router as authorization_router, setup_authorization
+from .deffault import router as deffault_router, setup_deffault
 from .admins import router as admins_router
 
-tickets_router.include_routers(deffault_router, authorization_router, admins_router)
+def register_handlers(
+        dp: Dispatcher,
+        db_service,
+        mail_service,
+        glpi_service,
+    ):
+
+    # Инъекция зависимостей в модули
+    setup_authorization(db_service, mail_service)
+    setup_deffault(db_service)
+    setup_tickets(glpi_service)
+
+    # Вложенность роутеров
+    dp.include_routers(
+            tickets_router,
+            deffault_router,
+            authorization_router,
+            admins_router
+        )

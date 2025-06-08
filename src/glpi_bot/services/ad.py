@@ -1,3 +1,5 @@
+# services/ad.py
+
 import logging
 import requests
 from .exceptions import LDAPError, LDAPUserNotFound
@@ -6,9 +8,6 @@ from .exceptions import LDAPError, LDAPUserNotFound
 logger = logging.getLogger(__name__)
 
 
-# URL = "http://localhost:82/get_user/mail"
-# URL = "http://ad_api:8000/get_user/mail"  # Используем внутреннее имя контейнера
-# URL = "http://aac:8000/get_user/mail"  # Используем внутреннее имя контейнера
 URL = "http://pgadmin.it4prof.ru:82/get_user/mail"
 HEADERS = {"Content-Type": "application/json"}
 TIMEOUT = 10  # Таймаут соединения в секундах
@@ -77,9 +76,3 @@ def get_user_mail(login):
 
     except requests.exceptions.Timeout:
         raise LDAPError("Таймаут при подключении к серверу") from None
-
-    # except requests.exceptions.RequestException as e:
-    #     raise LDAPError() from e
-
-    # except (ValueError, KeyError) as e:
-    #     raise ValueError(f"Ошибка при обработке ответа сервера: {str(e)}") from e
