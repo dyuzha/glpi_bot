@@ -7,7 +7,6 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from glpi_bot.config_handlers import TELEGRAM_TOKEN
-from glpi_bot.bot.handlers import tickets_router
 from glpi_bot.bot.menu import set_bot_commands
 from glpi_bot.bot.handlers import register_handlers
 
@@ -40,5 +39,3 @@ bot = Bot(
 
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
-
-dp.include_router(tickets_router)
