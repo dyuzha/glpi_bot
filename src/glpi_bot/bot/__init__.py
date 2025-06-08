@@ -18,7 +18,7 @@ def create_bot(services: dict):
     glpi_service = services["glpi_service"]
     db_service = services["db_service"]
     mail_service = services["mail_confirmation"]
-    ldap_func = services["get_user_mail"]
+    ldap_func = services["ldap_func"]
 
     register_handlers(dp, db_service, mail_service, glpi_service, ldap_func)
 
