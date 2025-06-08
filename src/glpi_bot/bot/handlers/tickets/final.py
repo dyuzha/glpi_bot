@@ -7,17 +7,17 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from glpi_bot.bot.handlers.tickets.base import back_handler
-# from glpi_bot.bot.handlers.tickets.models.dinamic_bod_message import DynamicBotMessage
-# from glpi_bot.bot.handlers.tickets.models.text_input_step import TextInputStep
+from glpi_bot.bot.handlers.tickets.models.dinamic_bod_message import DynamicBotMessage
+from glpi_bot.bot.handlers.tickets.models.text_input_step import TextInputStep
 from glpi_bot.bot.handlers.tickets.steps.title_step import title_step
 from glpi_bot.bot.handlers.utils import add_step
 from glpi_bot.bot.states import FinalStates, BaseStates
 from glpi_bot.bot.keyboards import base_buttons, confirm_kb, main_kb
-from glpi_bot.bot.handlers.tickets import bot_message
 
 
 logger = logging.getLogger(__name__)
 router = Router()
+bot_message = DynamicBotMessage()
 
 
 @router.message(StateFilter(FinalStates.title))
