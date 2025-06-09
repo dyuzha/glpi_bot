@@ -16,8 +16,8 @@ async def validate(message: Message,
     text = message.text.strip()
     if len(text) < length:
         await bot_message.update_message(message, state,
-            f"❗ Заголовок:\n{text} — слишком короткий"
-            f"Заголовок должен содержать минимум {length} символов"
+            f"❗ Описание:\n{text} — слишком короткий"
+            f"Описание должно содержать минимум {length} символов"
         )
         await message.delete()
         return False
@@ -29,14 +29,16 @@ async def save(message: Message,
                bot_message: DynamicBotMessage):
     text = message.text.strip()
     await message.delete()
-    await state.update_data(title=text)
-    await bot_message.add_field(state, "Заголовок", text)
+    await state.update_data(description=text)
+    await bot_message.add_field(state, "Описание", text)
+
 
 bot_message = DynamicBotMessage()
 
-title_step = TextInputStep(
-    state=FinalStates.title,
-    prompt="Введи title",
+
+description_step = TextInputStep(
+    state=FinalStates.description,
+    prompt="💬 Опишите проблему более подробно",
     bot_message=bot_message,
     validate=validate,
     final=save

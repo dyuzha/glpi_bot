@@ -49,7 +49,7 @@ def setup_entrypoint(db: DBService) -> Router:
             # await process_login(message, state)
             return
 
-        await state.set_state(BaseStates.complete_autorisation )
+        await state.set_state(BaseStates.complete_autorisation)
         await message.answer(START_MESSAGE, reply_markup=main_kb())
 
 

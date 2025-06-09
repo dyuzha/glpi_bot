@@ -1,3 +1,5 @@
+# bot/handlers/tickets/handlers/models/dinamic_bot_message.py
+
 from typing import Optional, Union
 from aiogram.types import Message, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext

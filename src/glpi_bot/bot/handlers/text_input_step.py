@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup
 import logging
 
 from glpi_bot.bot.handlers.tickets.models.dinamic_bod_message import DynamicBotMessage
-from glpi_bot.bot.handlers.utils import add_step, default_handle
+from glpi_bot.bot.handlers.utils import default_handle
 from glpi_bot.bot.keyboards import base_buttons
 
 
@@ -30,31 +30,13 @@ class TextInputStep:
         self.final = final
 
 
-    async def show_after_callback(self,
-                                  callback: CallbackQuery,
-                                  state: FSMContext,
-                                  prompt: Optional[str] = None):
+    async def show(self, callback: CallbackQuery, state: FSMContext):
         """Показ шага — задаёт состояние и показывает сообщение."""
         await state.set_state(self.state)
-        rendered = await self.bot_message.render(state, prompt or self.prompt)
+        rendered = await self.bot_message.render(state, self.prompt)
         keyboard = InlineKeyboardMarkup(inline_keyboard=[base_buttons])
         await default_handle(callback, state, rendered, keyboard)
 
-
-    async def show_after_message(self,
-                                 message: Message,
-                                 state: FSMContext,
-                                 prompt: Optional[str] = None):
-        """Показ шага — задаёт состояние и показывает сообщение."""
-        await state.set_state(self.state)
-        rendered = await self.bot_message.render(state, prompt or self.prompt)
-
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[base_buttons])
-        await add_step(state, prompt=rendered, keyboard=keyboard)
-        # await self.bot_message.update_message(message, state, "💬 Опишите проблему более подробно")
-        await self.bot_message.update_message(message, state, self.prompt)
-
-        # prompt = await self.bot_message.render(state, "💬 Опишите проблему более подробно")
 
     async def __call__(self, message: Message, state: FSMContext):
         """

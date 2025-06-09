@@ -3,7 +3,7 @@
 from typing import Callable
 from aiogram import Dispatcher
 
-# from .tickets import setup_tickets
+from .tickets import setup_send_ticket
 from .authorization import setup_authorization
 from .entrypoint import setup_entrypoint
 from .admins import setup_admins_command
@@ -25,12 +25,13 @@ def register_handlers(
     )
     entry_point_router = setup_entrypoint(db_service)
     admins_router = setup_admins_command(db_service)
-    # tickets_router = setup_tickets(glpi_service)
+    send_ticket_router = setup_send_ticket(glpi_service)
 
     from .tickets import router as tickets_router
     # Вложенность роутеров
     dp.include_routers(
             tickets_router,
+            send_ticket_router,
             entry_point_router,
             authorization_router,
             admins_router

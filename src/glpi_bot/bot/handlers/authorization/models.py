@@ -90,7 +90,7 @@ class TimeHandler:
 
 
 @dataclass
-class AuthState:
+class AuthService:
     login: Optional[str] = None
     mail: Optional[str] = None
     code: Optional[str] = None

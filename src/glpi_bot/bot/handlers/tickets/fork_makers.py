@@ -24,7 +24,7 @@ router = Router()
 async def select_category_inc_1c(callback: CallbackQuery, state: FSMContext):
     logger.debug("Call select_category")
 
-    prompt = "Выберите вашу проблему"
+    prompt = "Выберите объект вашей проблемы"
     keyboard = incident_1c_fork_maker.build_keyboard()
     await state.set_state(FlowStates.inc_1c)
     await default_handle(callback, state, prompt, keyboard)
@@ -43,7 +43,7 @@ async def callback_dispatcher_inc_1c(callback: CallbackQuery, state: FSMContext)
 async def select_category_inc_it(callback: CallbackQuery, state: FSMContext):
     logger.debug("Call select_category")
 
-    prompt = "Выберите вашу проблему"
+    prompt = "Выберите объект вашей проблемы"
     keyboard = inc_it_fork_maker.build_keyboard()
     await state.set_state(FlowStates.inc_it)
     await default_handle(callback, state, prompt, keyboard)
@@ -62,7 +62,7 @@ async def callback_dispatcher_inc_it(callback: CallbackQuery, state: FSMContext)
 async def select_category_req_1c(callback: CallbackQuery, state: FSMContext):
     logger.debug("Call select_category")
 
-    prompt = "Выберите вашу проблему"
+    prompt = "Выберите объект вашей проблемы"
     keyboard = request_1c_fork_maker.build_keyboard()
     await state.set_state(FlowStates.req_it)
     await default_handle(callback, state, prompt, keyboard)
@@ -81,7 +81,7 @@ async def callback_dispatcher_req_1c(callback: CallbackQuery, state: FSMContext)
 async def select_category_req_it(callback: CallbackQuery, state: FSMContext):
     logger.debug("Call select_category")
 
-    prompt = "Выберите вашу проблему"
+    prompt = "Выберите объект вашей проблемы"
     keyboard = request_it_fork_maker.build_keyboard()
     await state.set_state(FlowStates.req_it)
     await default_handle(callback, state, prompt, keyboard)

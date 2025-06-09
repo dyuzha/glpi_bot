@@ -40,7 +40,6 @@ class GLPIService:
         return self._organisation_data
 
 
-
 class GLPITicketManager(GLPIService):
     """Класс для взаимодействия с заявками в GLPI"""
     def __init__(self, session_manager: GLPISessionManager):
