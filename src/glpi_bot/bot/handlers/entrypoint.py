@@ -41,7 +41,10 @@ def setup_entrypoint(db: DBService) -> Router:
         logger.debug("Call main_menu")
         user_id = message.from_user.id
 
-        if not check_register(user_id):
+        login = check_register(user_id)
+
+        if login is not None:
+            await state.update_data(login=login)
             await state.set_state(AuthStates.LOGIN)
             # await state.set_state(BaseStates.waiting_autorisation)
             await message.answer(AUTH_REQUIRED_MESSAGE, parse_mode="HTML",
