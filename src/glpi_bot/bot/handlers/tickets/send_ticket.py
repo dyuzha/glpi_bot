@@ -22,11 +22,11 @@ def setup_send_ticket(glpi: GLPITicketManager):
     async def process_confirm(callback: CallbackQuery, state: FSMContext):
         logger.debug("Call process_confirm")
         d = await state.get_data()
-        logger.debug(f"{d['login']}")
-        logger.debug(f"{d['title']}")
-        logger.debug(f"{d['description']}")
-        logger.debug(f"{d['type']}")
-        logger.debug(f"{d['itilcategories_id']}")
+        logger.debug(f"login: {d['login']}")
+        logger.debug(f"title: {d['title']}")
+        logger.debug(f"description: {d['description']}")
+        logger.debug(f"type: {d['type']}")
+        logger.debug(f"itilcategories_id: {d['itilcategories_id']}")
         ticket_data = TicketData(
                 login = d["login"],
                 name = d["title"],
