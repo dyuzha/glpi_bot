@@ -24,6 +24,7 @@ def setup_send_ticket(glpi: GLPITicketManager):
 
         try:
             d = await state.get_data()
+            logger.debug(f"State data: {d}")
         except Exception as e:
             logger.exception(f"Ошибка при получении состояния: {e}")
             await callback.answer("Произошла ошибка. Попробуйте сначала.")
