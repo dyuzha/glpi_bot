@@ -20,6 +20,7 @@ def setup_send_ticket(glpi: GLPITicketManager):
 
     @router.callback_query(F.data == "confirm", StateFilter(FinalStates.confirm))
     async def process_confirm(callback: CallbackQuery, state: FSMContext):
+        logger.debug("Call process_confirm")
         state_data = await state.get_data()
         ticket_data = TicketData(
                 login = state_data["login"],
@@ -38,7 +39,6 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await callback.message.answer("Ошибка при создании заявки", reply_markup=main_kb())
 
         else:
-            logger.debug("Call process_confirm")
             await bot_message.update_message(callback.message, state,
                 f"✅ Заявка успешно создана!\n\n"
                 f"<b>Номер:</b> #{response['id']}\n"
