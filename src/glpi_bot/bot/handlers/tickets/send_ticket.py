@@ -21,7 +21,14 @@ def setup_send_ticket(glpi: GLPITicketManager):
     @router.callback_query(F.data == "confirm", StateFilter(FinalStates.confirm))
     async def process_confirm(callback: CallbackQuery, state: FSMContext):
         logger.debug("Call process_confirm")
-        d = await state.get_data()
+
+        try:
+            d = await state.get_data()
+        except Exception as e:
+            logger.exception(f"Ошибка при получении состояния: {e}")
+            await callback.answer("Произошла ошибка. Попробуйте сначала.")
+            return
+
         logger.debug(f"login: {d['login']}")
         logger.debug(f"title: {d['title']}")
         logger.debug(f"description: {d['description']}")
