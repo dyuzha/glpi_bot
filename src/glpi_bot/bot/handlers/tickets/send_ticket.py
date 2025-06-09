@@ -21,13 +21,18 @@ def setup_send_ticket(glpi: GLPITicketManager):
     @router.callback_query(F.data == "confirm", StateFilter(FinalStates.confirm))
     async def process_confirm(callback: CallbackQuery, state: FSMContext):
         logger.debug("Call process_confirm")
-        state_data = await state.get_data()
+        d = await state.get_data()
+        logger.debug(f"{d['login']}")
+        logger.debug(f"{d['title']}")
+        logger.debug(f"{d['description']}")
+        logger.debug(f"{d['type']}")
+        logger.debug(f"{d['itilcategories_id']}")
         ticket_data = TicketData(
-                login = state_data["login"],
-                name = state_data["title"],
-                content = state_data["description"],
-                type = state_data["type"],
-                itilcategories_id = state_data["itilcategories_id"]
+                login = d["login"],
+                name = d["title"],
+                content = d["description"],
+                type = d["type"],
+                itilcategories_id = d["itilcategories_id"]
         )
         try:
             # Создаем заявку в GLPI
@@ -42,7 +47,7 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await bot_message.update_message(callback.message, state,
                 f"✅ Заявка успешно создана!\n\n"
                 f"<b>Номер:</b> #{response['id']}\n"
-                f"<b>Заголовок:</b> {state_data['title']}\n"
+                f"<b>Заголовок:</b> {d['title']}\n"
                 f"<b>Статус:</b> В обработке",
                 keyboard=InlineKeyboardMarkup(inline_keyboard=[])
             )
