@@ -38,19 +38,19 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await callback.message.answer("Ошибка при создании заявки", reply_markup=main_kb())
 
         else:
-            await message.answer(
+            logger.debug("Call process_confirm")
+            await bot_message.update_message(callback.message, state,
                 f"✅ Заявка успешно создана!\n\n"
                 f"<b>Номер:</b> #{response['id']}\n"
-                f"<b>Заголовок:</b> {data['title']}\n"
+                f"<b>Заголовок:</b> {state_data['title']}\n"
                 f"<b>Статус:</b> В обработке",
-                reply_markup=main_kb()
-            )
-
-        logger.debug("Call process_confirm")
-        await bot_message.update_message(callback.message, state,
-                "✅ Заявка успешно отправлена!",
                 keyboard=InlineKeyboardMarkup(inline_keyboard=[])
-        )
+            )
+        # await bot_message.update_message(callback.message, state,
+        #         "✅ Заявка успешно отправлена!",
+        #         keyboard=InlineKeyboardMarkup(inline_keyboard=[])
+        # )
+
         await state.clear()
         await state.set_state(BaseStates.complete_autorisation)
         await callback.answer()
