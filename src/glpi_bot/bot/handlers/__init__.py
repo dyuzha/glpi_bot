@@ -6,7 +6,7 @@ from aiogram import Dispatcher
 # from .tickets import setup_tickets
 from .authorization import setup_authorization
 from .entrypoint import setup_entrypoint
-from .admins import router as admins_router
+from .admins import setup_admins_command
 
 
 def register_handlers(
@@ -24,6 +24,7 @@ def register_handlers(
             ldap_func
     )
     entry_point_router = setup_entrypoint(db_service)
+    admins_router = setup_admins_command(db_service)
     # tickets_router = setup_tickets(glpi_service)
 
     from .tickets import router as tickets_router

@@ -6,6 +6,7 @@ from glpi_bot.database import Database, Base, DBSessionManager
 
 # ad
 from .ad import get_user_mail
+from .exceptions import LDAPError, LDAPMailNotFound, LDAPUserNotFound
 # from .async_ad import AsyncLDAPService
 
 # # mail
@@ -27,4 +28,7 @@ __all__ = [
         "GLPITicketManager",
         "OrganisationCache",
         "create_services",
+        "LDAPError",
+        "LDAPMailNotFound",
+        "LDAPUserNotFound",
 ]

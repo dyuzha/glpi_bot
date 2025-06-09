@@ -11,6 +11,7 @@ from glpi_bot.bot.states import AuthStates
 from .models import AuthState
 from glpi_bot.bot.keyboards import auth_code_kb, succ_kb
 from .settings import LENGTH_CODE, MAIL_NOT_FOUND, USER_NOT_FOUND, AUTHORIZATION_ERROR
+from glpi_bot.services import LDAPMailNotFound, LDAPError, LDAPUserNotFound
 
 
 logger = logging.getLogger(__name__)
