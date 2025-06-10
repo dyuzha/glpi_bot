@@ -23,8 +23,15 @@ class OrganisationCache(BaseCache):
         super().__init__(ttl_seconds=None)
         self.session_manager = session_manager
 
-    def load(self) -> dict:
-        with self.session_manager.get_session() as session:
+    # def load(self) -> dict:
+    #     with self.session_manager.get_session() as session:
+    #         return GLPIInterface(session).get_all_entities()
+
+    def load(self, session=None) -> dict:
+        if session is None:
+            with self.session_manager.get_session() as session:
+                return GLPIInterface(session).get_all_entities()
+        else:
             return GLPIInterface(session).get_all_entities()
 
 
@@ -41,7 +48,7 @@ class GLPITicketManager:
             if user is None:
                 raise ValueError(f"Пользователь '{ticket_data.login}' не найден")
 
-            org_data = self.org_cache.get()
+            org_data = self.org_cache.get(session=session)
             if user.organisation not in org_data:
                 raise ValueError(f"Организация '{user.organisation}' не найдена")
 

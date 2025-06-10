@@ -25,16 +25,16 @@ class BaseCache(ABC):
         self._timestamp = 0
         self.ttl = ttl_seconds
 
-    def get(self):
-        """Возвращает кешированные данные"""
+    def get(self, *args, **kwargs):
+        """Возвращает кешированные данные, обновляя при необходимости"""
         now = time.time()
 
         if self._data is None:
-            self._data = self.load()
+            self._data = self.load(*args, **kwargs)
             self._timestamp = now
 
         elif self.ttl is not None and (now - self._timestamp) > self.ttl:
-            self._data = self.load()
+            self._data = self.load(*args, **kwargs)
             self._timestamp = now
 
         return self._data

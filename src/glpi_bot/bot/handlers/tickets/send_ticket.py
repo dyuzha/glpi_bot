@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 
 from glpi_bot.bot.handlers.tickets.models.dinamic_bod_message import DynamicBotMessage
 from glpi_bot.bot.keyboards import main_kb
-from glpi_bot.bot.states import BaseStates, FinalStates
+from glpi_bot.bot.states import FinalStates
 from glpi_bot.services import GLPITicketManager
 from glpi_bot.services.glpi_service2_0 import TicketData
 
@@ -24,17 +24,18 @@ def setup_send_ticket(glpi: GLPITicketManager):
 
         try:
             d = await state.get_data()
-            logger.debug(f"State data: {d}")
+            # logger.debug(f"State data: {d}")
         except Exception as e:
             logger.exception(f"Ошибка при получении состояния: {e}")
             await callback.answer("Произошла ошибка. Попробуйте сначала.")
             return
 
-        logger.debug(f"login: {d['login']}")
-        logger.debug(f"title: {d['title']}")
-        logger.debug(f"description: {d['description']}")
-        logger.debug(f"type: {d['type']}")
-        logger.debug(f"itilcategories_id: {d['itilcategories_id']}")
+        logger.debug(f"login: {d['login']}"
+                     f"title: {d['title']}"
+                     f"description: {d['description']}"
+                     f"type: {d['type']}"
+                     f"itilcategories_id: {d['itilcategories_id']}")
+
         ticket_data = TicketData(
                 login = d["login"],
                 name = d["title"],
@@ -58,11 +59,6 @@ def setup_send_ticket(glpi: GLPITicketManager):
                 f"<b>Заголовок:</b> {d['title']}\n"
                 f"<b>Статус:</b> В обработке",
                 keyboard=InlineKeyboardMarkup(inline_keyboard=[])
-            )
-        # await bot_message.update_message(callback.message, state,
-        #         "✅ Заявка успешно отправлена!",
-        #         keyboard=InlineKeyboardMarkup(inline_keyboard=[])
-        # )
 
         await state.clear()
         await state.set_state(BaseStates.complete_autorisation)

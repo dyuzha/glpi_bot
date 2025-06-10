@@ -1,7 +1,7 @@
 # glpi/models.py
 
 import logging
-import requests
+# import requests
 from typing import Optional
 from glpi_bot.glpi import GLPIBase
 
