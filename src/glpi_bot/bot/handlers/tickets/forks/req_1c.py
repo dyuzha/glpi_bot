@@ -5,9 +5,8 @@ from typing import Callable, Optional
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from glpi_bot.bot.handlers.tickets.steps import title_step
+from glpi_bot.bot.handlers.tickets.steps import description_step
 from glpi_bot.bot.handlers.tickets.instances import bot_message, req_1c_fork_maker
-from glpi_bot.bot.handlers.tickets.steps.title_step import title_step
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +23,7 @@ async def call_description(
     await state.update_data(itilcategories_id = itilcategories_id)
     await state.update_data(name = category)
     await bot_message.add_field(state, "Категория", category)
-    await title_step.show_after_callback(callback, state, prompt)
+    await description_step.show_after_callback(callback, state, prompt)
 
 
 def local_register(call_code: str, key_prompt: str,  itilcategories_id: int, func: Optional[Callable]=None, category: Optional[str]=None):
