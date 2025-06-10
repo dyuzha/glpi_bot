@@ -29,11 +29,11 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await callback.answer("Произошла ошибка. Попробуйте сначала.")
             return
 
-        logger.debug(f"login: {d['login']}"
-                     f"title: {d['title']}"
-                     f"description: {d['description']}"
-                     f"type: {d['type']}"
-                     f"itilcategories_id: {d['itilcategories_id']}")
+        # logger.debug(f"login: {d['login']}"
+        #              f"title: {d['title']}"
+        #              f"description: {d['description']}"
+        #              f"type: {d['type']}"
+        #              f"itilcategories_id: {d['itilcategories_id']}")
 
         ticket_data = TicketData(
                 login = d["login"],

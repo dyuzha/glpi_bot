@@ -21,7 +21,7 @@ async def call_description(
     ):
 
     await state.update_data(itilcategories_id = itilcategories_id)
-    await state.update_data(name = category)
+    await state.update_data(title = category)
     await bot_message.add_field(state, "Категория", category)
     await description_step.show_after_callback(callback, state, prompt)
 
