@@ -1,8 +1,9 @@
-# bot/handlers/tickets/handlers/models/dinamic_bot_message.py
+# models/dynamic_message/dinamic_bot_message.py
 
-from typing import Optional, Union
+from typing import Optional
 from aiogram.types import Message, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
+from .message_flasher import MessageFlasher
 import logging
 
 
@@ -10,9 +11,14 @@ logger = logging.getLogger(__name__)
 
 
 class DynamicBotMessage:
-    def __init__(self, head: str = "📝 Детали заявки", separator: str = "\n\n"):
-        self.head = head
-        self.separator = separator
+    def __init__(self,
+                 inline_keyboard: InlineKeyboardMarkup,
+                 head: str = "📝 Детали заявки",
+                 separator: str = "\n\n"):
+        self._head = head
+        self._separator = separator
+        self._keyboard = inline_keyboard
+        self.flasher = MessageFlasher(self)
 
 
     async def add_field(self, state: FSMContext, key: str, value: str):
@@ -50,43 +56,50 @@ class DynamicBotMessage:
         data = await state.get_data()
         fields = data.get("dynamic_fields", {})
 
-        parts = [self.head]
+        parts = [self._head]
         parts.extend(f"{key}: {value}" for key, value in fields.items())
         parts.extend(s for s in strings if s)
 
-        return self.separator.join(parts)
+        return self._separator.join(parts)
 
 
-    async def update_message(self, message: Message, state: FSMContext, *strings,
-                             keyboard: Optional[InlineKeyboardMarkup] = None):
+    async def update_message(
+            self,
+            message: Message,
+            state: FSMContext,
+            *strings,
+            keyboard: Optional[InlineKeyboardMarkup] = None
+        ) -> Optional[Message]:
+
         """
-        Редактирует последнее сообщение бота, извлекая его из navigation-стека.
-        Используется для отображения обновлённой информации пользователю.
+        Редактирует последнее сообщение бота, извлекая его из state.
+        Возвращает объект Message при успехе, иначе None.
         """
         data = await state.get_data()
         message_id = data.get("bot_message_id")
 
         if not message_id:
             logger.debug("Not bot_message_id")
-            return
+            return None
 
-        stack = data.get("navigation_data", {}).get("stack", [])
-
-        if not keyboard:
-            if stack and "keyboard" in stack[-1]:
-                keyboard = InlineKeyboardMarkup(**stack[-1]["keyboard"])
+        if not message.bot:
+            logger.error("Message has no bot instance")
+            return None
 
         text = await self.render(state, *strings)
 
         try:
-            await message.bot.edit_message_text(
+            edited_message = await message.bot.edit_message_text(
                 chat_id=message.chat.id,
                 message_id=message_id,
                 text=text,
-                reply_markup=keyboard,
-            ) if message.bot else Exception
+                reply_markup=keyboard or self._keyboard,
+            )
         except Exception as e:
             logger.error(f"Failed to edit message: {e}")
+            return None
+
+        return edited_message
 
 
     async def reset(self, state: FSMContext):

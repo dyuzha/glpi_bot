@@ -10,8 +10,6 @@ from glpi_bot.bot.states import TicketStates, BaseStates
 from glpi_bot.bot.text import *
 from glpi_bot.bot.keyboards import incident_types_kb, request_types_kb
 
-# from glpi_bot.bot.handlers.deffault import BaseStates
-
 
 logger = logging.getLogger(__name__)
 router = Router()

@@ -1,15 +1,8 @@
 from aiogram import Router
-from .models import DynamicBotMessage
 from glpi_bot.bot.handlers.tickets.models import BaseForkMaker
 from glpi_bot.bot.keyboards import base_buttons
 
-
-bot_message = DynamicBotMessage()
-incident_1c_fork_maker = BaseForkMaker(base_buttons=base_buttons)
-inc_it_fork_maker = BaseForkMaker(base_buttons=base_buttons)
-request_it_fork_maker = BaseForkMaker(base_buttons=base_buttons)
-request_1c_fork_maker = BaseForkMaker(base_buttons=base_buttons)
-
+from . import instances
 
 from .base import router as base_router
 from .final import router as final_router

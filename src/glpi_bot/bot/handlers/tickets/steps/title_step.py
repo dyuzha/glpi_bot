@@ -3,8 +3,9 @@
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from glpi_bot.bot.handlers.tickets.models.dinamic_bod_message import DynamicBotMessage
-from glpi_bot.bot.handlers.tickets.models.text_input_step import TextInputStep
+from glpi_bot.bot.handlers.tickets.models import DynamicBotMessage
+from glpi_bot.bot.handlers.tickets.models import TextInputStep
+from glpi_bot.bot.handlers.tickets.instances import bot_message
 from glpi_bot.bot.states import FinalStates
 
 
@@ -15,8 +16,8 @@ async def validate(message: Message,
                          ) -> bool:
     text = message.text.strip()
     if len(text) < length:
-        await bot_message.update_message(message, state,
-            f"❗ Заголовок:\n{text} — слишком короткий"
+        await bot_message.flasher.warning(message, state,
+            f"Заголовок:\n{text} — слишком короткий"
             f"Заголовок должен содержать минимум {length} символов"
         )
         await message.delete()
@@ -27,12 +28,12 @@ async def validate(message: Message,
 async def save(message: Message,
                state: FSMContext,
                bot_message: DynamicBotMessage):
+
     text = message.text.strip()
     await message.delete()
     await state.update_data(title=text)
     await bot_message.add_field(state, "Заголовок", text)
 
-bot_message = DynamicBotMessage()
 
 title_step = TextInputStep(
     state=FinalStates.title,

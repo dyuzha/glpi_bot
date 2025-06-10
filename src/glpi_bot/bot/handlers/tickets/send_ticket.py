@@ -4,15 +4,14 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 
-from glpi_bot.bot.handlers.tickets.models.dinamic_bod_message import DynamicBotMessage
+from glpi_bot.bot.handlers.tickets.instances import bot_message
 from glpi_bot.bot.keyboards import main_kb
-from glpi_bot.bot.states import FinalStates
+from glpi_bot.bot.states import BaseStates, FinalStates
 from glpi_bot.services import GLPITicketManager
 from glpi_bot.services.glpi_service2_0 import TicketData
 
 
 logger = logging.getLogger(__name__)
-bot_message = DynamicBotMessage()
 
 
 def setup_send_ticket(glpi: GLPITicketManager):
@@ -53,12 +52,14 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await callback.message.answer("Ошибка при создании заявки", reply_markup=main_kb())
 
         else:
-            await bot_message.update_message(callback.message, state,
-                f"✅ Заявка успешно создана!\n\n"
-                f"<b>Номер:</b> #{response['id']}\n"
-                f"<b>Заголовок:</b> {d['title']}\n"
-                f"<b>Статус:</b> В обработке",
-                keyboard=InlineKeyboardMarkup(inline_keyboard=[])
+            await bot_message.update_message(
+                    callback.message, state,
+                    f"✅ Заявка успешно создана!\n\n"
+                    f"<b>Номер:</b> #{response['id']}\n"
+                    f"<b>Заголовок:</b> {d['title']}\n"
+                    f"<b>Статус:</b> В обработке",
+                    keyboard=InlineKeyboardMarkup(inline_keyboard=[])
+                )
 
         await state.clear()
         await state.set_state(BaseStates.complete_autorisation)

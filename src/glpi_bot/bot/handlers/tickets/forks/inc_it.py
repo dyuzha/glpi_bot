@@ -1,17 +1,13 @@
 # bot/handlers/tickets/forks/inc_it.py
 
 import logging
-from typing import Optional
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery
 
-from glpi_bot.bot.handlers.tickets.models import TextInputStep
 from glpi_bot.bot.handlers.tickets.steps import title_step
-from glpi_bot.bot.handlers.utils import default_handle
-from glpi_bot.bot.states import FinalStates
-from glpi_bot.bot.keyboards import base_buttons
-from glpi_bot.bot.handlers.tickets import bot_message, inc_it_fork_maker
+from glpi_bot.bot.handlers.tickets.instances import bot_message, inc_it_fork_maker
 from glpi_bot.bot.handlers.tickets.steps.title_step import title_step
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +17,7 @@ async def call_title(
         state: FSMContext,
         category: str,
         itilcategories_id: int,
-        prompt:str = "💬 Введите заголовок заявки\n(Краткое описание проблемы)",
+        prompt:str = "Введите заголовок заявки\n(Краткое описание проблемы)",
     ):
 
     await state.update_data(itilcategories_id = itilcategories_id)
@@ -29,9 +25,9 @@ async def call_title(
     await title_step.show_after_callback(callback, state, prompt)
 
 
-# @inc_it_fork_maker.register_callback(name="no_inet", text="Нет интернета")
+@inc_it_fork_maker.register_callback(name="no_inet", text="Нет интернета")
 async def inet_truble(callback: CallbackQuery, state: FSMContext):
-    await call_title(callback, state, "Отсутствие интернета", 1)
+    await call_title(callback, state, "Отсутствие интернета", 60)
 
 
 # @inc_it_fork_maker.register_callback(name="invalid_mail", text="Не работает почта")
@@ -48,7 +44,7 @@ async def rdp_truble(callback: CallbackQuery, state: FSMContext):
 inc_it_fork_maker.register_many(
     [
         # ("key", "button_text", func),
-        ("no_inet", "Интернета", inet_truble),
+        # ("no_inet", "Интернета", inet_truble),
         ("invalid_mail", "Почта", mail_truble),
         ("rdp", "Удаленное подключение", rdp_truble),
 
@@ -86,6 +82,5 @@ inc_it_fork_maker.register_many(
             "category": "Проблема c видеонаблюдением",
             "itilcategories_id": 2,
         }),
-
     ],
 )

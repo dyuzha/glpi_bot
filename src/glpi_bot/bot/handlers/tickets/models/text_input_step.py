@@ -6,12 +6,13 @@ from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup
 import logging
 
-from glpi_bot.bot.handlers.tickets.models.dinamic_bod_message import DynamicBotMessage
+from glpi_bot.bot.handlers.tickets.models import DynamicBotMessage
 from glpi_bot.bot.handlers.utils import add_step, default_handle
 from glpi_bot.bot.keyboards import base_buttons
 
 
 logger = logging.getLogger(__name__)
+
 
 
 class TextInputStep:
@@ -30,31 +31,91 @@ class TextInputStep:
         self.final = final
 
 
-    async def show_after_callback(self,
-                                  callback: CallbackQuery,
-                                  state: FSMContext,
-                                  prompt: Optional[str] = None):
-        """Показ шага — задаёт состояние и показывает сообщение."""
+    async def show_after_callback(
+        self,
+        callback: CallbackQuery,
+        state: FSMContext,
+        prompt: Optional[str] = None,
+    ):
+        await self._show(callback.message, state, prompt)
+        await callback.answer()
+
+
+    async def show_after_message(
+        self,
+        message: Message,
+        state: FSMContext,
+        prompt: Optional[str] = None,
+    ):
+        await self._show(message, state, prompt)
+
+
+    async def _show(self, message: Message, state: FSMContext, prompt: Optional[str] = None):
         await state.set_state(self.state)
-        rendered = await self.bot_message.render(state, prompt or self.prompt)
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[base_buttons])
-        await default_handle(callback, state, rendered, keyboard)
+
+        edit_message = await self.bot_message.flasher.request(
+            message, state, prompt or self.prompt
+        )
+
+        if edit_message is None:
+            logger.warning("Не удалось отредактировать сообщение")
+            # Можно, например, показать alert, если message от callback
+            if hasattr(message, 'bot'):
+                try:
+                    await message.answer("Произошла ошибка при обновлении сообщения")
+                except Exception:
+                    pass
+            return
+
+        prompt = edit_message.text or ""
+        keyboard = edit_message.reply_markup
+        await add_step(state, prompt=prompt, keyboard=keyboard)
 
 
-    async def show_after_message(self,
-                                 message: Message,
-                                 state: FSMContext,
-                                 prompt: Optional[str] = None):
-        """Показ шага — задаёт состояние и показывает сообщение."""
-        await state.set_state(self.state)
-        rendered = await self.bot_message.render(state, prompt or self.prompt)
+    # async def show_after_callback(
+    #     self,
+    #     callback: CallbackQuery,
+    #     state: FSMContext,
+    #     prompt: Optional[str] = None,
+    # ):
+    #     """Показ шага — задаёт состояние и показывает сообщение (после callback)."""
+    #     await state.set_state(self.state)
+    #
+    #     edit_message = await self.bot_message.flasher.request(
+    #         callback.message, state, prompt or self.prompt
+    #     )
+    #
+    #     if edit_message is None:
+    #         logger.warning("Не удалось отредактировать сообщение после callback")
+    #         await callback.answer("Что-то пошло не так", show_alert=True)
+    #         return
+    #
+    #     prompt = edit_message.text or ""
+    #     keyboard = edit_message.reply_markup
+    #     await add_step(state, prompt=prompt, keyboard=keyboard)
+    #
+    #     await callback.answer()
+    #
+    #
+    # async def show_after_message(self,
+    #                              message: Message,
+    #                              state: FSMContext,
+    #                              prompt: Optional[str] = None):
+    #     """Показ шага — задаёт состояние и показывает сообщение."""
+    #     await state.set_state(self.state)
+    #
+    #     edit_message = await self.bot_message.flasher.request(
+    #             message, state, prompt or self.prompt
+    #     )
+    #
+    #     if edit_message is None:
+    #         logger.warning("Не удалось отредактирвоать сообщение")
+    #         return
+    #
+    #     prompt = edit_message.text or ""
+    #     keyboard = edit_message.reply_markup
+    #     await add_step(state, prompt=prompt, keyboard=keyboard)
 
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[base_buttons])
-        await add_step(state, prompt=rendered, keyboard=keyboard)
-        # await self.bot_message.update_message(message, state, "💬 Опишите проблему более подробно")
-        await self.bot_message.update_message(message, state, self.prompt)
-
-        # prompt = await self.bot_message.render(state, "💬 Опишите проблему более подробно")
 
     async def __call__(self, message: Message, state: FSMContext):
         """

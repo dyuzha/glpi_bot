@@ -1,13 +1,15 @@
-# bot/handlers/fork_makers.py
+# bot/handlers/tickets/fork_makers.py
 
 import logging
 from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from glpi_bot.bot.handlers.tickets import incident_1c_fork_maker
-from glpi_bot.bot.handlers.tickets import inc_it_fork_maker
-from glpi_bot.bot.handlers.tickets import request_1c_fork_maker
-from glpi_bot.bot.handlers.tickets import request_it_fork_maker
+from glpi_bot.bot.handlers.tickets.instances import (
+        incident_1c_fork_maker,
+        inc_it_fork_maker,
+        req_1c_fork_maker,
+        request_it_fork_maker
+)
 
 from glpi_bot.bot.states import FlowStates, TicketStates
 from aiogram.types import CallbackQuery
@@ -63,7 +65,7 @@ async def select_category_req_1c(callback: CallbackQuery, state: FSMContext):
     logger.debug("Call select_category")
 
     prompt = "Выберите объект вашей проблемы"
-    keyboard = request_1c_fork_maker.build_keyboard()
+    keyboard = req_1c_fork_maker.build_keyboard()
     await state.set_state(FlowStates.req_it)
     await default_handle(callback, state, prompt, keyboard)
 
@@ -72,7 +74,7 @@ async def select_category_req_1c(callback: CallbackQuery, state: FSMContext):
         StateFilter(FlowStates.req_1c))
 async def callback_dispatcher_req_1c(callback: CallbackQuery, state: FSMContext):
     logger.debug("Call callback_dispatcher")
-    await request_1c_fork_maker(callback, state)
+    await req_1c_fork_maker(callback, state)
 
 
 # Запрос IT

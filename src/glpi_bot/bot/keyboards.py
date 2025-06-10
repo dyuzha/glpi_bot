@@ -2,10 +2,15 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardBut
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from glpi_bot.bot.text import BACK_KEY, CANCEL_KEY
 
+
 base_buttons: list[InlineKeyboardButton] = [
     InlineKeyboardButton(text=BACK_KEY, callback_data="navigation_back"),
     InlineKeyboardButton(text=CANCEL_KEY, callback_data="cancel")
 ]
+
+
+def base_kb():
+    return InlineKeyboardMarkup(inline_keyboard=[base_buttons])
 
 
 def main_kb():
