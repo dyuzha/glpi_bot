@@ -66,7 +66,7 @@ async def select_category_req_1c(callback: CallbackQuery, state: FSMContext):
 
     prompt = "Выберите объект вашей проблемы"
     keyboard = req_1c_fork_maker.build_keyboard()
-    await state.set_state(FlowStates.req_it)
+    await state.set_state(FlowStates.req_1c)
     await default_handle(callback, state, prompt, keyboard)
 
 
