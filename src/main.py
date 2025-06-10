@@ -2,6 +2,7 @@
 
 from glpi_bot.config_handlers import setup_logging
 from glpi_bot.services.factory import create_services
+from glpi_bot.config_handlers import TELEGRAM_TOKEN
 from glpi_bot.bot import create_bot
 
 
@@ -13,7 +14,7 @@ async def main():
 
     services = create_services()
 
-    bot, dp, on_startup = create_bot(services)
+    bot, dp, on_startup = create_bot(services, TELEGRAM_TOKEN)
 
     await dp.start_polling(bot)
 

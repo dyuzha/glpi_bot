@@ -15,3 +15,6 @@ users.db
 
 # ide
 .idea
+
+# Тестовая среда
+test_env.py

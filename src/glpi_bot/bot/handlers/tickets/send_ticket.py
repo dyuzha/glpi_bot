@@ -36,11 +36,12 @@ def setup_send_ticket(glpi: GLPITicketManager):
         #              f"itilcategories_id: {d['itilcategories_id']}")
 
         ticket_data = TicketData(
-                login = d["login"],
-                name = d["title"],
-                content = d["description"],
-                type = d["type"],
-                itilcategories_id = d["itilcategories_id"]
+                login = d['login'],
+                # name = f"[{d['login']}] {d['title']}",
+                name = d['title'],
+                content = d['description'],
+                type = d['type'],
+                itilcategories_id = d['itilcategories_id']
         )
         try:
             # Создаем заявку в GLPI

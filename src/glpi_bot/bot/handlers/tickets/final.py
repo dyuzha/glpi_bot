@@ -60,19 +60,3 @@ async def local_back_in_description(callback: CallbackQuery, state: FSMContext):
     await bot_message.del_field(state, "Описание")
     await back_handler(callback, state)
     await callback.answer()
-
-
-# @router.callback_query(F.data == "confirm", StateFilter(FinalStates.confirm))
-# async def process_confirm(callback: CallbackQuery, state: FSMContext):
-#     logger.debug("Call process_confirm")
-#     await bot_message.update_message(callback.message, state,
-#             "✅ Заявка успешно отправлена!",
-#             keyboard=InlineKeyboardMarkup(inline_keyboard=[])
-#     )
-#     await state.clear()
-#     await state.set_state(BaseStates.complete_autorisation)
-#     await callback.answer()
-#     await callback.message.answer(
-#             "Чтобы создать заявку: воспользуйтесь кнопками ниже 👇",
-#             reply_markup=main_kb()
-#     )

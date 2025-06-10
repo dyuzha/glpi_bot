@@ -17,7 +17,7 @@ from glpi_bot.glpi import GLPISessionManager
 from .glpi_service2_0 import GLPITicketManager, OrganisationCache
 
 # factory
-from .factory import create_services
+# from .factory import create_services
 
 
 __all__ = [
@@ -27,7 +27,7 @@ __all__ = [
         "GLPISessionManager",
         "GLPITicketManager",
         "OrganisationCache",
-        "create_services",
+        # "create_services",
         "LDAPError",
         "LDAPMailNotFound",
         "LDAPUserNotFound",
