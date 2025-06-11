@@ -1,5 +1,5 @@
 from aiogram import Router
-from glpi_bot.bot.handlers.tickets.models import BaseForkMaker
+from glpi_bot.bot.handlers.tickets.models import BaseFlowCollector
 from glpi_bot.bot.keyboards import base_buttons
 
 from . import instances

@@ -5,8 +5,9 @@ from typing import Callable, Optional
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
+from glpi_bot.bot.handlers.tickets.models import BaseFlowCollector
 from glpi_bot.bot.handlers.tickets.steps import description_step
-from glpi_bot.bot.handlers.tickets.instances import bot_message, req_1c_fork_maker
+from glpi_bot.bot.handlers.tickets.instances import bot_message
 
 
 logger = logging.getLogger(__name__)
@@ -23,27 +24,16 @@ async def call_description(
     await state.update_data(itilcategories_id = itilcategories_id)
     await state.update_data(title = category)
     await bot_message.add_field(state, "Категория", category)
-    await description_step.show_after_callback(callback, state, prompt)
+
+    await description_step.show(callback.message, state, prompt)
+    await callback.answer()
 
 
 def local_register(call_code: str, key_prompt: str,  itilcategories_id: int, func: Optional[Callable]=None, category: Optional[str]=None):
-    if func is None:
-        func = call_description
-
-    if category is None:
-        category = key_prompt
-
-    # return (
-    #         call_code, key_prompt, func or call_description,
-    #         {
-    #             "category": category or key_prompt,
-    #             "itilcategories_id": itilcategories_id
-    #         }
-    # )
     return (
-            call_code, key_prompt, func,
+            call_code, key_prompt, func or call_description,
             {
-                "category": category,
+                "category": category or key_prompt,
                 "itilcategories_id": itilcategories_id
             }
     )
@@ -61,6 +51,9 @@ puncts = [
         ["10", "Производительность", 42],
          ]
 
-rl = [local_register(*punct) for punct in puncts]
+args = [local_register(*punct) for punct in puncts]
 
-req_1c_fork_maker.register_many(rl)
+def build_flow(base_buttons: list) -> BaseFlowCollector:
+    flow_collector = BaseFlowCollector(base_buttons=base_buttons)
+    flow_collector.register_many(args)
+    return flow_collector

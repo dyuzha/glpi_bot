@@ -31,26 +31,7 @@ class TextInputStep:
         self.final = final
 
 
-    async def show_after_callback(
-        self,
-        callback: CallbackQuery,
-        state: FSMContext,
-        prompt: Optional[str] = None,
-    ):
-        await self._show(callback.message, state, prompt)
-        await callback.answer()
-
-
-    async def show_after_message(
-        self,
-        message: Message,
-        state: FSMContext,
-        prompt: Optional[str] = None,
-    ):
-        await self._show(message, state, prompt)
-
-
-    async def _show(self, message: Message, state: FSMContext, prompt: Optional[str] = None):
+    async def show(self, message: Message, state: FSMContext, prompt: Optional[str] = None):
         await state.set_state(self.state)
 
         edit_message = await self.bot_message.flasher.request(
@@ -70,51 +51,6 @@ class TextInputStep:
         prompt = edit_message.text or ""
         keyboard = edit_message.reply_markup
         await add_step(state, prompt=prompt, keyboard=keyboard)
-
-
-    # async def show_after_callback(
-    #     self,
-    #     callback: CallbackQuery,
-    #     state: FSMContext,
-    #     prompt: Optional[str] = None,
-    # ):
-    #     """Показ шага — задаёт состояние и показывает сообщение (после callback)."""
-    #     await state.set_state(self.state)
-    #
-    #     edit_message = await self.bot_message.flasher.request(
-    #         callback.message, state, prompt or self.prompt
-    #     )
-    #
-    #     if edit_message is None:
-    #         logger.warning("Не удалось отредактировать сообщение после callback")
-    #         await callback.answer("Что-то пошло не так", show_alert=True)
-    #         return
-    #
-    #     prompt = edit_message.text or ""
-    #     keyboard = edit_message.reply_markup
-    #     await add_step(state, prompt=prompt, keyboard=keyboard)
-    #
-    #     await callback.answer()
-    #
-    #
-    # async def show_after_message(self,
-    #                              message: Message,
-    #                              state: FSMContext,
-    #                              prompt: Optional[str] = None):
-    #     """Показ шага — задаёт состояние и показывает сообщение."""
-    #     await state.set_state(self.state)
-    #
-    #     edit_message = await self.bot_message.flasher.request(
-    #             message, state, prompt or self.prompt
-    #     )
-    #
-    #     if edit_message is None:
-    #         logger.warning("Не удалось отредактирвоать сообщение")
-    #         return
-    #
-    #     prompt = edit_message.text or ""
-    #     keyboard = edit_message.reply_markup
-    #     await add_step(state, prompt=prompt, keyboard=keyboard)
 
 
     async def __call__(self, message: Message, state: FSMContext):

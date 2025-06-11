@@ -43,11 +43,11 @@ async def init_create_ticket(message: Message, state: FSMContext):
 @router.callback_query(F.data == "incident", StateFilter(TicketStates.type))
 async def process_incident(callback: CallbackQuery, state: FSMContext):
     logger.debug(f"Call process_incident")
+    await state.set_state(TicketStates.incident)
     await state.update_data(type=1)
 
     prompt = "🛠 Выберите тип инцидента:"
     keyboard = incident_types_kb()
-
     await default_handle(callback, state, prompt, keyboard)
 
 

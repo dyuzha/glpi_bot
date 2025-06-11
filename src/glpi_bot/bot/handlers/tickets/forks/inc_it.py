@@ -4,15 +4,14 @@ import logging
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from glpi_bot.bot.handlers.tickets.steps import title_step
-from glpi_bot.bot.handlers.tickets.instances import bot_message, inc_it_fork_maker
-from glpi_bot.bot.handlers.tickets.steps.title_step import title_step
+from glpi_bot.bot.handlers.tickets.models import BaseFlowCollector
+from glpi_bot.bot.handlers.tickets.steps import description_step
+from glpi_bot.bot.handlers.tickets.instances import bot_message
 
 
 logger = logging.getLogger(__name__)
 
-
-async def call_title(
+async def call_description(
         callback: CallbackQuery,
         state: FSMContext,
         category: str,
@@ -21,66 +20,72 @@ async def call_title(
     ):
 
     await state.update_data(itilcategories_id = itilcategories_id)
+    await state.update_data(title = category)
     await bot_message.add_field(state, "Категория", category)
-    await title_step.show_after_callback(callback, state, prompt)
+
+    await description_step.show(callback.message, state, prompt)
+    await callback.answer()
 
 
-@inc_it_fork_maker.register_callback(name="no_inet", text="Нет интернета")
-async def inet_truble(callback: CallbackQuery, state: FSMContext):
-    await call_title(callback, state, "Отсутствие интернета", 60)
-
-
-# @inc_it_fork_maker.register_callback(name="invalid_mail", text="Не работает почта")
 async def mail_truble(callback: CallbackQuery, state: FSMContext):
-    await call_title(callback, state, "Не работает почта", 23)
+    await call_description(callback, state, "Не работает почта", 23)
 
 
-# @inc_it_fork_maker.register_callback(name="invalid_rdp", text="Не работает удаленка")
 async def rdp_truble(callback: CallbackQuery, state: FSMContext):
-    await call_title(callback, state, "Не работает удаленное подключение", 3)
+    await call_description(callback, state, "Не работает удаленное подключение", 3)
 
 
-# Регистрация дефолтных обаботчиков
-inc_it_fork_maker.register_many(
-    [
+# Дефолтные обаботчики
+puncts = [
         # ("key", "button_text", func),
         # ("no_inet", "Интернета", inet_truble),
         ("invalid_mail", "Почта", mail_truble),
         ("rdp", "Удаленное подключение", rdp_truble),
 
-        ("office", "Офисные программы", call_title, {
+        ("office", "Офисные программы", call_description, {
             "category": "Проблема при работе с офисными программами",
             "itilcategories_id": 15,
         }),
 
-        ("peripheral", "Оборудование на рабочем месте", call_title, {
+        ("peripheral", "Оборудование на рабочем месте", call_description, {
             "category": "Проблема c оборудованием на рабочем месте",
             "itilcategories_id": 17,
         }),
 
-        ("print", "Принтер/сканер", call_title, {
+        ("print", "Принтер/сканер", call_description, {
             "category": "Проблема с принтером/сканером",
             "itilcategories_id": 17,
         }),
 
-        ("resuerce", "Доступ к ресурсам", call_title, {
+        ("resuerce", "Доступ к ресурсам", call_description, {
             "category": "Проблема c доступом к ресурсам",
             "itilcategories_id": 5,
         }),
 
-        ("resuerce", "Производительность АРМ", call_title, {
+        ("resuerce", "Производительность АРМ", call_description, {
             "category": "Проблема c производительностью АРМ",
             "itilcategories_id": 60,
         }),
 
-        ("phone", "Телефония", call_title, {
+        ("phone", "Телефония", call_description, {
             "category": "Проблема c телефонией",
             "itilcategories_id": 73,
         }),
 
-        ("video", "Видеонаблюдение", call_title, {
+        ("video", "Видеонаблюдение", call_description, {
             "category": "Проблема c видеонаблюдением",
             "itilcategories_id": 2,
         }),
-    ],
-)
+    ]
+
+def build_flow(base_buttons: list) -> BaseFlowCollector:
+    flow_collector = BaseFlowCollector(base_buttons=base_buttons)
+
+    @flow_collector.register_callback(name="no_inet", text="Нет интернета")
+    async def inet_truble(callback: CallbackQuery, state: FSMContext):
+        await call_description(callback, state, "Отсутствие интернета", 60)
+
+    # Регистрация дефолтных обаботчиков
+    flow_collector.register_many(puncts)
+
+    return flow_collector

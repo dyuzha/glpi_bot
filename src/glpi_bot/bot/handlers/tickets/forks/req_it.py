@@ -1,3 +1,5 @@
+# bot/handlers/tickets/forks/req_1c.py
+
 import logging
 from typing import Callable, Optional
 from aiogram.fsm.context import FSMContext
@@ -27,11 +29,7 @@ async def call_description(
     await callback.answer()
 
 
-def local_register(call_code: str,
-                   key_prompt: str,
-                   itilcategories_id: int,
-                   func: Optional[Callable]=None,
-                   category: Optional[str]=None):
+def local_register(call_code: str, key_prompt: str,  itilcategories_id: int, func: Optional[Callable]=None, category: Optional[str]=None):
     return (
             call_code, key_prompt, func or call_description,
             {
@@ -42,16 +40,19 @@ def local_register(call_code: str,
 
 
 puncts = [
-        ["1", "Ошибка лицензирования", 43],
-        ["2", "Ошибка обмена данных", 46],
-        ["3", "Ошибка запуска 1С", 42],
-        ["4", "Ошибка при проведении/записи документов", 44],
-        ["5", "Ошибка при формировании отчета", 45],
-        ["6", "Ошибка расчета данных", 48],
-        ["7", "Прочие ошибки 1С", 49],
+        ["develop", "Добавление/удаление прав/доступов/пользователей", 20],
+        ["2", "Обслуживание орг техники, рабочих мест", 17],
+        ["3", "Установка/удаление ПО", 16],
+        ["4", "Диагностика рабочих мест", 60],
+        ["5", "Сопровождение ЭЦП", 60],
+        ["6", "Сопровождение сайтов", 1],
+        ["7", "Cопровождение видеонаблюдения", 2],
+        ["8", "Сопровождение телефонии", 73],
+        ["9", "Сопровождение электронной почты", 23],
          ]
 
 args = [local_register(*punct) for punct in puncts]
+
 
 def build_flow(base_buttons: list) -> BaseFlowCollector:
     flow_collector = BaseFlowCollector(base_buttons=base_buttons)

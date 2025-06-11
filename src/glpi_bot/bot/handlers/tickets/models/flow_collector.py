@@ -7,7 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from functools import partial
 
 
-class BaseForkMaker:
+class BaseFlowCollector:
     def __init__(self, base_buttons: Optional[list[InlineKeyboardButton]] = None):
         self._handlers: Dict[str, dict] = {}
         self._base_buttons = base_buttons
