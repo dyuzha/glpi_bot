@@ -1,6 +1,7 @@
 # bot/handlers/tickets/handlers/models/text_input_step.py
 
 from typing import Awaitable, Callable, Optional
+from aiogram import Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup
@@ -31,7 +32,7 @@ class TextInputStep:
         self.final = final
 
 
-    async def show(self, message: Message, state: FSMContext, prompt: Optional[str] = None):
+    async def __call__(self, message: Message, state: FSMContext, prompt: Optional[str] = None)
         await state.set_state(self.state)
 
         edit_message = await self.bot_message.flasher.request(
@@ -53,7 +54,7 @@ class TextInputStep:
         await add_step(state, prompt=prompt, keyboard=keyboard)
 
 
-    async def __call__(self, message: Message, state: FSMContext):
+    async def handle(self, message: Message, state: FSMContext):
         """
         Обработка ввода пользователя,
         возвращает True[False] при прохождении[не прохождении] валидации.

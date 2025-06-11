@@ -16,14 +16,14 @@ async def call_description(
         state: FSMContext,
         category: str,
         itilcategories_id: int,
-        prompt:str = "Введите заголовок заявки\n(Краткое описание проблемы)",
+        prompt:str = "Подробно опишите проблему",
     ):
 
     await state.update_data(itilcategories_id = itilcategories_id)
     await state.update_data(title = category)
     await bot_message.add_field(state, "Категория", category)
 
-    await description_step.show(callback.message, state, prompt)
+    await description_step(callback.message, state, prompt)
     await callback.answer()
 
 
