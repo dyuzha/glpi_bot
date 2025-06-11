@@ -18,7 +18,7 @@ async def validate(message: Message,
     text = message.text.strip()
     if len(text) < length:
         await bot_message.flasher.warning(message, state,
-            f"Описание:\n{text} — слишком короткий"
+            f"Описание:\n{text} — слишком короткий\n"
             f"Описание должно содержать минимум {length} символов"
         )
         await message.delete()
