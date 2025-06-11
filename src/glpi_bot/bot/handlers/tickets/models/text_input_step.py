@@ -32,7 +32,10 @@ class TextInputStep:
         self.final = final
 
 
-    async def __call__(self, message: Message, state: FSMContext, prompt: Optional[str] = None)
+    async def __call__(self,
+                       message: Message,
+                       state: FSMContext,
+                       prompt: Optional[str] = None):
         await state.set_state(self.state)
 
         edit_message = await self.bot_message.flasher.request(
