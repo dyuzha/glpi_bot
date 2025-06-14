@@ -6,7 +6,6 @@ from aiogram.types import Message
 from glpi_bot.bot.handlers.tickets.models import DynamicBotMessage
 from glpi_bot.bot.handlers.tickets.instances import bot_message
 from glpi_bot.bot.handlers.tickets.models import TextInputStep
-from glpi_bot.bot.keyboards import base_kb
 from glpi_bot.bot.states import FinalStates
 
 
@@ -15,7 +14,10 @@ async def validate(message: Message,
                    bot_message: DynamicBotMessage,
                    length: int = 10
                          ) -> bool:
-    text = message.text.strip()
+
+    text = message.text or ""
+    text = text.strip()
+
     if len(text) < length:
         await bot_message.flasher.warning(message, state,
             f"Описание:\n{text} — слишком короткое\n"
@@ -29,7 +31,10 @@ async def validate(message: Message,
 async def save(message: Message,
                state: FSMContext,
                bot_message: DynamicBotMessage):
-    text = message.text.strip()
+
+    text = message.text or ""
+    text = text.strip()
+
     await message.delete()
     await state.update_data(description=text)
     await bot_message.add_field(state, "Описание", text)
@@ -41,4 +46,4 @@ description_step = TextInputStep(
     bot_message=bot_message,
     validate=validate,
     final=save
-    )
+   )

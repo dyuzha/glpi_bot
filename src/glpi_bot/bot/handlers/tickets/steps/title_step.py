@@ -12,8 +12,8 @@ from glpi_bot.bot.states import FinalStates
 async def validate(message: Message,
                    state: FSMContext,
                    bot_message: DynamicBotMessage,
-                   length: int = 10
-                         ) -> bool:
+                   length: int = 10,
+                ) -> bool:
     text = message.text.strip()
     if len(text) < length:
         await bot_message.flasher.warning(message, state,

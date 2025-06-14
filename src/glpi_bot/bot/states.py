@@ -31,3 +31,9 @@ class FinalStates(StatesGroup):
     description = State()
     title = State()
     confirm = State()
+
+class TestStates(StatesGroup):
+    test1 = State()
+    test2 = State()
+    test3 = State()
+    test4 = State()
