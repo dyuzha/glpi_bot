@@ -52,16 +52,6 @@ FlowMaker(
 
 
 
-
-
-
-
-
-
-
-
-
-
 # inc_1c_flow_collector = build_flow_inc_1c(base_buttons=base_buttons)
 # SelectInlineStep(
 #         filters=(F.data == "inc_1c", StateFilter(TicketStates.incident)),

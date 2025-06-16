@@ -6,7 +6,7 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram import Router
 
-from glpi_bot.bot.handlers.tickets.models.steps.select_auto_step import SelectAutoInlineStep, SelectInlineStep
+from glpi_bot.bot.handlers.tickets.models.steps import SelectInlineStep, AutoInlineStep
 from glpi_bot.bot.handlers.utils import add_step
 from glpi_bot.bot.states import TestStates, TicketStates, BaseStates
 from glpi_bot.bot.text import *
@@ -62,28 +62,27 @@ SelectInlineStep(
 ).register_handler(router)
 
 
-test_auto_inline = SelectAutoInlineStep(
+request = AutoInlineStep(
         filters=(F.data == "test", StateFilter(TicketStates.type)),
-        state=TestStates.test1,
-        prefix = "main_prefix",
-        prompt = "[Main] Выберите один из предложенных шагов",
-        base_buttons = base_buttons,
+        state=TicketStates.incident,
+        prompt = "🛠 Выберите тип запроса:",
+        before_callback=partial(set_type, type=2),
         )
 
-sub_2 = SelectInlineStep(
-        state=TestStates.test2,
-        prompt = "[Sub] Выберите один из предложенных шагов",
-        keyboard=incident_types_kb(),
-)
+request["Первый вариант"] = AutoInlineStep(
+        state=TestStates.test1,
+        prompt="Первый промпт",
+        before_callback=partial(set_type, type=2)
+        )
 
-sub_3 = SelectInlineStep(
+request["Второй вариант"] = AutoInlineStep(
         state=TestStates.test2,
-        prompt = "[Sub] Выберите один из предложенных шагов",
-        keyboard=request_types_kb(),
-)
+        prompt="Второй промпт",
+        before_callback=partial(set_type, type=1)
+        )
 
-test_auto_inline.set_steps({"sub_2": sub_2, "sub_3": sub_3 })
-test_auto_inline.register_handler(router)
+request.register_handler(router)
+
 
 
 

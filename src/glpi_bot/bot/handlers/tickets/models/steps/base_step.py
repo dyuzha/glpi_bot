@@ -1,12 +1,9 @@
 
 from abc import ABC, abstractmethod
 from typing import Callable, Iterable, Optional
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State
-from aiogram import Router, F
-from aiogram.filters import StateFilter
-from glpi_bot.bot.handlers.utils import default_handle
+from aiogram import Router
 import logging
 
 
@@ -15,12 +12,12 @@ logger = logging.getLogger("__name__")
 
 class BaseStep(ABC):
     def __init__(self, filters: Optional[Iterable[Callable]] = None):
-        self.filters = filters
+        self.filters = filters or []
 
     def register_handler(self, router: Router) -> None:
         if not self.filters:
             raise ValueError("Нужно передать хотя бы один фильтр.")
-        router.callback_query.register(self._handler, *self.filters)
+        router.callback_query.register(self.on_callback, *self.filters)
 
 
     def get_router(self) -> Router:
@@ -30,10 +27,6 @@ class BaseStep(ABC):
 
 
     async def __call__(self, callback: CallbackQuery, state: FSMContext):
-        await self._handler(callback, state)
-
-
-    async def _handler(self, callback: CallbackQuery, state: FSMContext):
         await self.on_callback(callback, state)
 
 

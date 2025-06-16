@@ -28,7 +28,7 @@ def is_async_callable(func: Callable) -> bool:
     return False
 
 
-def cb_factory(prefix: str):
+def _cb_factory(prefix: str):
     """
     Создаёт CallbackData-фабрику с динамическим классом,
     у которого одно поле — `name`, и указанный префикс.
@@ -42,6 +42,8 @@ class BaseFlowCollector:
     """
     Упрощает регистрацию набора callback-хендлеров и построение
     inline-клавиатуры с кнопками, привязанными к этим хендлерам.
+
+    При вызове данного экземпляра - вызывает соответствующий handler
     """
     _name_counter = itertools.count(1)
 
@@ -55,7 +57,7 @@ class BaseFlowCollector:
         """
         self._handlers: Dict[str, dict] = {}
         self._base_buttons = base_buttons
-        self._cb_factory = cb_factory(prefix)
+        self.cb_factory = _cb_factory(prefix)
 
 
     def register_callback(
@@ -98,7 +100,7 @@ class BaseFlowCollector:
 
         :param text: Текст кнопки
         :param handler: Асинхронная функция-обработчик
-        :param name: Имя, под которым будет сохранён хендлер (опционально)
+        # :param name: Имя, под которым будет сохранён хендлер (опционально)
         :param kwargs: Дополнительные параметры, которые будут переданы в handler через partial
         """
         # name = name or f"auto_{next(self._name_counter)}"
@@ -162,7 +164,7 @@ class BaseFlowCollector:
             await callback.answer("Некорректный callback.")
             return
 
-        cb_data = self._cb_factory.unpack(callback.data)
+        cb_data = self.cb_factory.unpack(callback.data)
         handler_entry = self._handlers.get(cb_data.name)
 
         if not handler_entry:
@@ -181,7 +183,7 @@ class BaseFlowCollector:
         builder = InlineKeyboardBuilder()
 
         for name, item in self._handlers.items():
-            callback_data = self._cb_factory(name=name).pack()
+            callback_data = self.cb_factory(name=name).pack()
             builder.button(text=item["text"], callback_data=callback_data)
 
         builder.adjust(1)

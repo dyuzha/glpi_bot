@@ -54,5 +54,3 @@ class SelectInlineStep(BaseStep):
 
         # Подтверждаем callback без всплывающего уведомления
         await callback.answer()
-
-

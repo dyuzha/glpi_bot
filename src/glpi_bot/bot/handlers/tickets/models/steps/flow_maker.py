@@ -45,7 +45,7 @@ class FlowMaker(SelectInlineStep):
 
         router.callback_query.register(
             handler,  # <- теперь передаём асинхронную функцию
-            self.flow_collector._cb_factory.filter(),
+            self.flow_collector.cb_factory.filter(),
             StateFilter(self.state),
         )
 
