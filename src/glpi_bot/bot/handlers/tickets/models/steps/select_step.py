@@ -4,7 +4,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 from glpi_bot.bot.handlers.tickets.models.steps.base_step import BaseStep
-from glpi_bot.bot.handlers.utils import add_step
 import logging
 
 
@@ -23,7 +22,7 @@ class SelectInlineStep(BaseStep):
         ):
         super().__init__(filters)
         self.prompt = prompt
-        self.keyboard = keyboard
+        self._keyboard = keyboard
         self.before_callback = before_callback
         self.state = state
         self.self_button_text = self_button_text
@@ -35,8 +34,12 @@ class SelectInlineStep(BaseStep):
                           prompt: Optional[str] = None,
                           keyboard: Optional[InlineKeyboardMarkup] = None):
 
+        current_state = await state.get_state()
+        logger.debug(f"Handling callback. Current state: {current_state}, data: {callback.data}")
+
         if self.before_callback:
             await self.before_callback(callback, state)
+
 
         prompt = prompt or self.prompt
         keyboard = keyboard or self.keyboard
@@ -46,11 +49,11 @@ class SelectInlineStep(BaseStep):
 
         await state.set_state(self.state)
 
-        await add_step(state=state, prompt=prompt, keyboard=keyboard)
+        await super().on_callback(callback, state)
 
         # Обновляем сообщение бота с новым текстом и клавиатурой
         if isinstance(callback.message, Message):
-            await callback.message.edit_text(prompt, reply_markup=keyboard)
+            await callback.message.edit_text(prompt or "", reply_markup=keyboard)
 
         # Подтверждаем callback без всплывающего уведомления
         await callback.answer()

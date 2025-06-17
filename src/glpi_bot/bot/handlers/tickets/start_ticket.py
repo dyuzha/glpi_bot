@@ -6,11 +6,12 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram import Router
 
-from glpi_bot.bot.handlers.tickets.models.steps import SelectInlineStep, AutoInlineStep
+from glpi_bot.bot.handlers.tickets.models.steps import SelectInlineStep, BaseAutoStep
 from glpi_bot.bot.handlers.utils import add_step
-from glpi_bot.bot.states import TestStates, TicketStates, BaseStates
+from glpi_bot.bot.states import TestStates, TicketStates, BaseStates, FlowStates
 from glpi_bot.bot.text import *
 from glpi_bot.bot.keyboards import incident_types_kb, request_types_kb, base_buttons
+from glpi_bot.bot.handlers.tickets.instances import bot_message
 
 
 logger = logging.getLogger(__name__)
@@ -53,33 +54,57 @@ SelectInlineStep(
 ).register_handler(router)
 
 
-SelectInlineStep(
+# SelectInlineStep(
+#         filters=(F.data == "request", StateFilter(TicketStates.type)),
+#         state=TicketStates.request,
+#         prompt = "🛠 Выберите тип запроса:",
+#         keyboard=request_types_kb(),
+#         before_callback=partial(set_type, type=2),
+# ).register_handler(router)
+
+
+request = BaseAutoStep(
         filters=(F.data == "request", StateFilter(TicketStates.type)),
-        state=TicketStates.incident,
-        prompt = "🛠 Выберите тип запроса:",
-        keyboard=request_types_kb(),
-        before_callback=partial(set_type, type=2),
-).register_handler(router)
-
-
-request = AutoInlineStep(
-        filters=(F.data == "test", StateFilter(TicketStates.type)),
-        state=TicketStates.incident,
+        state=TicketStates.request,
         prompt = "🛠 Выберите тип запроса:",
         before_callback=partial(set_type, type=2),
+        base_buttons=base_buttons,
         )
 
-request["Первый вариант"] = AutoInlineStep(
-        state=TestStates.test1,
-        prompt="Первый промпт",
-        before_callback=partial(set_type, type=2)
+
+req_1c = BaseAutoStep(
+        state=FlowStates.req_1c,
+        prompt = "Выберите направление запроса",
+        base_buttons=base_buttons,
         )
 
-request["Второй вариант"] = AutoInlineStep(
-        state=TestStates.test2,
-        prompt="Второй промпт",
-        before_callback=partial(set_type, type=1)
+req_it = BaseAutoStep(
+        state=FlowStates.req_it,
+        prompt = "Выберите направление запроса",
+        base_buttons=base_buttons,
         )
+
+async def set_category(callback: CallbackQuery, state: FSMContext,
+                       id: int, category: str):
+    await state.update_data(itilcategories_id = id)
+    await state.update_data(title = category)
+    await bot_message.add_field(state, "Категория", category)
+
+
+
+req_it["Добавление/удаление прав/доступов/пользователей"] = BaseAutoStep(
+        state=TestStates.test3, prompt="Тестовый",
+        before_callback=partial(set_category, id=20, category="Настройка прав")
+        )
+
+req_it["Обслуживание орг техники, рабочих мест"] = BaseAutoStep(
+        state=TestStates.test3, prompt="Тестовый")
+
+req_it["Установка/удаление ПО"] = BaseAutoStep(
+        state=TestStates.test3, prompt="Тестовый")
+
+request["По 1с"] = req_1c
+request["По IT"] = req_it
 
 request.register_handler(router)
 
