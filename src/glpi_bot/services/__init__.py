@@ -14,7 +14,7 @@ from .mail_service import EmailConfirmation
 
 # glpi
 from glpi_bot.glpi import GLPISessionManager
-from .glpi_service2_0 import GLPITicketManager, OrganisationCache
+from .glpi_service import GLPITicketManager, OrganisationCache
 
 # factory
 # from .factory import create_services

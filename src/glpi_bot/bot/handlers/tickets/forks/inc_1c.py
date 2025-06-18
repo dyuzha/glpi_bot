@@ -16,7 +16,7 @@ async def call_description(
         state: FSMContext,
         category: str,
         itilcategories_id: int,
-        prompt:str = "Введите заголовок заявки\n(Краткое описание проблемы)",
+        prompt:str = "Опишите проблему подробнее",
     ):
 
     await state.update_data(itilcategories_id = itilcategories_id)

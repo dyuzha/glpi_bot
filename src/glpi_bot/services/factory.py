@@ -6,7 +6,7 @@ from glpi_bot.glpi import GLPISessionManager
 
 from .db_service import DBService
 from .mail_service import EmailConfirmation
-from .glpi_service2_0 import GLPITicketManager, OrganisationCache
+from .glpi_service import GLPITicketManager, OrganisationCache
 from .ad import get_user_mail
 
 

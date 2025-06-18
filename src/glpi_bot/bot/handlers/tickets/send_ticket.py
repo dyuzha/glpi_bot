@@ -8,7 +8,7 @@ from glpi_bot.bot.handlers.tickets.instances import bot_message
 from glpi_bot.bot.keyboards import main_kb
 from glpi_bot.bot.states import BaseStates, FinalStates
 from glpi_bot.services import GLPITicketManager
-from glpi_bot.services.glpi_service2_0 import TicketData
+from glpi_bot.services.glpi_service import TicketData
 
 
 logger = logging.getLogger(__name__)

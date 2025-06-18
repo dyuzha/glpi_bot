@@ -7,7 +7,7 @@ from aiogram import Router
 
 from glpi_bot.bot.handlers.utils import add_step, default_handle
 from glpi_bot.bot.states import TicketStates, BaseStates
-from glpi_bot.bot.text import CANCEL_KEY, SELECT_WILL_TYPE_TICKET
+from glpi_bot.bot.text import CANCEL_KEY, SELECT_TYPE_TICKET
 from glpi_bot.bot.keyboards import incident_types_kb, request_types_kb
 
 
@@ -28,7 +28,7 @@ type_kb = InlineKeyboardMarkup(
 async def init_create_ticket(message: Message, state: FSMContext):
     """Выбрать Инцидент/Запрос"""
     logger.debug(f"Call init_create_ticket")
-    prompt = SELECT_WILL_TYPE_TICKET
+    prompt = SELECT_TYPE_TICKET
     keyboard = type_kb
 
     # Добавляем текущий шаг (как-будто он был вызван с inline_keyboard и в type state)
