@@ -56,6 +56,7 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await bot_message.update_message(
                     callback.message, state,
                     f"✅ Заявка успешно создана!\n\n"
+                    f"Ссылка: https://sd.it4prof.ru/front/ticket.form.php?id={response['id']}\n"
                     f"<b>Номер:</b> #{response['id']}\n"
                     f"<b>Заголовок:</b> {d['title']}\n"
                     f"<b>Статус:</b> В обработке",

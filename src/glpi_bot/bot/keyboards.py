@@ -17,7 +17,7 @@ def main_kb():
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="Создать заявку")],
-            # [KeyboardButton(text="Мои заявки")]
+            [KeyboardButton(text="Мои заявки", web_app={"url": "https://sd.it4prof.ru/front/ticket.php"})]
         ],
         resize_keyboard=True,
         one_time_keyboard=True
