@@ -21,7 +21,7 @@ class GLPIUser:
 
 class GLPIInterface(GLPIBase):
 
-    def create_ticket(self, **data) -> dict:
+    def create_ticket(self, **data) -> Optional[dict]:
         """Создание заявки"""
         ticket_data = {"input": data}
         return self.post(endpoint="Ticket", json_data=ticket_data)

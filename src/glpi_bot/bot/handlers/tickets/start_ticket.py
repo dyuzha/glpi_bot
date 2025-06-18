@@ -46,7 +46,7 @@ async def process_incident(callback: CallbackQuery, state: FSMContext):
     await state.set_state(TicketStates.incident)
     await state.update_data(type=1)
 
-    prompt = "🛠 Выберите тип инцидента:"
+    prompt = "🛠 Выберите направление инцидента:"
     keyboard = incident_types_kb()
     await default_handle(callback, state, prompt, keyboard)
 
@@ -57,7 +57,7 @@ async def process_request(callback: CallbackQuery, state: FSMContext):
     await state.set_state(TicketStates.request)
     await state.update_data(type=2)
 
-    prompt = "📝 Выберите тип запроса:"
+    prompt = "📝 Выберите направление запроса:"
     keyboard = request_types_kb()
 
     await default_handle(callback, state, prompt, keyboard)

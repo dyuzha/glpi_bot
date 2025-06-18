@@ -18,3 +18,4 @@ users.db
 
 # Тестовая среда
 test_env.py
+**/.env.test.py
