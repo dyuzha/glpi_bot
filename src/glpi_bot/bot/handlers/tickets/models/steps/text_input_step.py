@@ -15,7 +15,6 @@ from glpi_bot.bot.keyboards import base_buttons
 logger = logging.getLogger(__name__)
 
 
-
 class TextInputStep:
     def __init__(
         self,
@@ -30,6 +29,10 @@ class TextInputStep:
         self.bot_message = bot_message
         self.validate = validate
         self.final = final
+
+
+    async def show(self, message: Message, state: FSMContext, prompt: Optional[str] = None):
+        await self.__call__(message, state, prompt)
 
 
     async def __call__(self,
@@ -55,6 +58,8 @@ class TextInputStep:
         prompt = edit_message.text or ""
         keyboard = edit_message.reply_markup
         await add_step(state, prompt=prompt, keyboard=keyboard)
+
+
 
 
     async def handle(self, message: Message, state: FSMContext):

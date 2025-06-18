@@ -6,11 +6,10 @@ from . import instances
 
 from .base import router as base_router
 from .final import router as final_router
-from .fork_makers import router as fork_makers_router
+from .flow_makers import router as fork_makers_router
 from .start_ticket import router as start_ticket_router
 
 from .send_ticket import setup_send_ticket
-from .forks import *
 
 router = Router()
 
