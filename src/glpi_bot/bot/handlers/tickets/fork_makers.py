@@ -8,11 +8,13 @@ from glpi_bot.bot.states import FlowStates, TicketStates
 from aiogram.types import CallbackQuery
 from glpi_bot.bot.handlers.utils import default_handle
 
-from glpi_bot.bot.handlers.tickets.forks.req_1c import build_flow as build_flow_req_1c
-from glpi_bot.bot.handlers.tickets.forks.inc_1c import build_flow as build_flow_inc_1c
-from glpi_bot.bot.handlers.tickets.forks.req_it import build_flow as build_flow_req_it
-from glpi_bot.bot.handlers.tickets.forks.inc_it import build_flow as build_flow_inc_it
 from glpi_bot.bot.keyboards import base_buttons
+from glpi_bot.bot.handlers.tickets.forks import (
+        build_flow_req_1c,
+        build_flow_inc_1c,
+        build_flow_req_it,
+        build_flow_inc_it,
+)
 
 logger = logging.getLogger(__name__)
 
