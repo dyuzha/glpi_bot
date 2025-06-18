@@ -3,9 +3,9 @@
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from glpi_bot.bot.handlers.tickets.models import DynamicBotMessage
+from glpi_bot.bot.handlers.models import DynamicBotMessage
 from glpi_bot.bot.handlers.tickets.instances import bot_message
-from glpi_bot.bot.handlers.tickets.models import TextInputStep
+from glpi_bot.bot.handlers.models import TextInputStep
 from glpi_bot.bot.keyboards import base_kb
 from glpi_bot.bot.states import FinalStates
 

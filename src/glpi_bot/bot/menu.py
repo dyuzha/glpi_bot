@@ -1,4 +1,4 @@
-from aiogram import Bot, Dispatcher
+from aiogram import Bot
 from aiogram.types import BotCommand
 
 

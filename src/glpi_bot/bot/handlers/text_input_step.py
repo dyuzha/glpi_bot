@@ -6,7 +6,7 @@ from aiogram.fsm.state import State
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup
 import logging
 
-from glpi_bot.bot.handlers.tickets.models import DynamicBotMessage
+from glpi_bot.bot.handlers.models import DynamicBotMessage
 from glpi_bot.bot.handlers.utils import default_handle
 from glpi_bot.bot.keyboards import base_buttons
 

@@ -4,7 +4,7 @@ import logging
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from glpi_bot.bot.handlers.tickets.models import BaseFlowCollector
+from glpi_bot.bot.handlers.models import BaseFlowCollector
 from glpi_bot.bot.handlers.tickets.steps import description_step
 from glpi_bot.bot.handlers.tickets.instances import bot_message
 

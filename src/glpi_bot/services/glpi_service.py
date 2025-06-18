@@ -23,10 +23,6 @@ class OrganisationCache(BaseCache):
         super().__init__(ttl_seconds=None)
         self.session_manager = session_manager
 
-    # def load(self) -> dict:
-    #     with self.session_manager.get_session() as session:
-    #         return GLPIInterface(session).get_all_entities()
-
     def load(self, session=None) -> dict:
         if session is None:
             with self.session_manager.get_session() as session:
