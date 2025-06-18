@@ -39,12 +39,10 @@ class FlowMaker(SelectInlineStep):
     #         StateFilter(self.next_state),
     #     )
 
-    def register_ext_handlers(self, router: Router) -> None:
-        async def handler(callback: CallbackQuery, state: FSMContext):
-            await self.flow_collector(callback, state)  # <- вызываем __call__ с await
 
+    def register_ext_handlers(self, router: Router) -> None:
         router.callback_query.register(
-            handler,  # <- теперь передаём асинхронную функцию
+            self._flow_collector_handler,
             self.flow_collector.cb_factory.filter(),
             StateFilter(self.state),
         )
@@ -53,3 +51,14 @@ class FlowMaker(SelectInlineStep):
     def register_handler(self, router: Router) -> None:
         super().register_handler(router)
         self.register_ext_handlers(router)
+
+
+    async def _flow_collector_handler(self, callback: CallbackQuery, state: FSMContext):
+        """Безопасная обертка для вызова flow_collector"""
+        try:
+            await self.flow_collector(callback, state)
+        except Exception as e:
+            logger.error(f"Error in flow_collector: {e}")
+            await callback.answer("Произошла ошибка")
+
+

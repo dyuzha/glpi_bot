@@ -40,6 +40,7 @@ class SelectInlineStep(BaseStep):
         if self.before_callback:
             await self.before_callback(callback, state)
 
+        await state.set_state(self.state)
 
         prompt = prompt or self.prompt
         keyboard = keyboard or self.keyboard
@@ -47,13 +48,12 @@ class SelectInlineStep(BaseStep):
         if not keyboard:
             raise ValueError("Необходимо сначала задать клавиатуру")
 
-        await state.set_state(self.state)
-
-        await super().on_callback(callback, state)
-
         # Обновляем сообщение бота с новым текстом и клавиатурой
         if isinstance(callback.message, Message):
-            await callback.message.edit_text(prompt or "", reply_markup=keyboard)
+            try:
+                await callback.message.edit_text(prompt or "", reply_markup=keyboard)
+            except Exception as e:
+                logger.error(f"Error editing message")
 
         # Подтверждаем callback без всплывающего уведомления
         await callback.answer()

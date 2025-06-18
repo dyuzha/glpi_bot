@@ -9,10 +9,8 @@ import logging
 
 from glpi_bot.bot.handlers.utils import add_step
 
-# from glpi_bot.bot.handlers.utils import add_step
 
-
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 
 
 class BaseStep(ABC):
@@ -37,7 +35,7 @@ class BaseStep(ABC):
             raise ValueError("Нужно передать хотя бы один фильтр.")
 
         router.callback_query.register(
-                self.on_callback,
+                self.handle,
                 *self.filters
                 )
 
@@ -61,7 +59,7 @@ class BaseStep(ABC):
 
 
     async def handle(self, callback: CallbackQuery, state: FSMContext):
-        await self.handle(callback, state)
+        await self.base_action(callback, state)
         await self.on_callback(callback, state)
 
 
