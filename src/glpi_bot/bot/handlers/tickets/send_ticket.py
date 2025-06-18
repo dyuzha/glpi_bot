@@ -46,22 +46,37 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await callback.message.answer("Ошибка при создании заявки", reply_markup=main_kb())
 
         else:
-            await bot_message.update_message(
-                    callback.message, state,
-                    f"✅ Заявка успешно создана!\n\n"
-                    f"Ссылка: https://sd.it4prof.ru/front/ticket.form.php?id={response['id']}\n"
-                    f"<b>Номер:</b> #{response['id']}\n"
-                    f"<b>Заголовок:</b> {d['title']}\n"
-                    f"<b>Статус:</b> В обработке",
-                    keyboard=InlineKeyboardMarkup(inline_keyboard=[])
-                )
+            await bot_message.delete_message(callback.message, state)
+
+            # await bot_message.update_message(
+            #         callback.message, state,
+            #         f"✅ Заявка успешно создана!\n\n"
+            #         f"Ссылка: https://sd.it4prof.ru/front/ticket.form.php?id={response['id']}\n"
+            #         f"<b>Номер:</b> #{response['id']}\n"
+            #         f"<b>Заголовок:</b> {d['title']}\n"
+            #         f"<b>Статус:</b> В обработке",
+            #         keyboard=InlineKeyboardMarkup(inline_keyboard=[])
+            #     )
 
         await state.clear()
         await state.set_state(BaseStates.complete_autorisation)
         await callback.answer()
+
         await callback.message.answer(
-                "Чтобы создать заявку: воспользуйтесь кнопками ниже 👇",
+                text=(
+                f"✅ Заявка успешно создана!\n\n"
+                f"Ссылка: https://sd.it4prof.ru/front/ticket.form.php?id={response['id']}\n"
+                f"<b>Номер:</b> #{response['id']}\n"
+                f"<b>Заголовок:</b> {d['title']}\n"
+                f"<b>Статус:</b> В обработке"),
                 reply_markup=main_kb()
-        )
+            )
+
+
+
+        # await callback.message.answer(
+        #         "Чтобы создать заявку: воспользуйтесь кнопками ниже 👇",
+        #         reply_markup=main_kb()
+        # )
 
     return router

@@ -102,6 +102,27 @@ class DynamicBotMessage:
         return edited_message
 
 
+    async def delete_message(self, message: Message, state: FSMContext) -> bool:
+        """Удаляет сообщение бота. Возвращает True если удаление успешно."""
+        try:
+            data = await state.get_data()
+            if (message_id := data.get("bot_message_id")) is None:
+                logger.debug("bot_message_id не найден в state")
+                return False
+
+            await message.bot.delete_message(
+                chat_id=message.chat.id,
+                message_id=message_id
+            )
+            # Очищаем message_id после удаления
+            await state.update_data(bot_message_id=None)
+            return True
+
+        except Exception as e:
+            logger.error(f"Ошибка при удалении сообщения: {e}")
+            return False
+
+
     async def reset(self, state: FSMContext):
         """Очищает все динамические поля"""
         await state.update_data(dynamic_fields={})

@@ -8,7 +8,6 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from glpi_bot.bot.handlers.tickets.base import back_handler
 from glpi_bot.bot.handlers.tickets.instances import bot_message
-from glpi_bot.bot.handlers.tickets.steps import title_step
 from glpi_bot.bot.handlers.tickets.steps import description_step
 from glpi_bot.bot.handlers.utils import add_step
 from glpi_bot.bot.states import FinalStates

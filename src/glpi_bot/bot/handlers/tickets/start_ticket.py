@@ -54,6 +54,7 @@ async def process_incident(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "request", StateFilter(TicketStates.type))
 async def process_request(callback: CallbackQuery, state: FSMContext):
     logger.debug(f"Call process_request")
+    await state.set_state(TicketStates.request)
     await state.update_data(type=2)
 
     prompt = "📝 Выберите тип запроса:"

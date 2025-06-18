@@ -1,27 +1,27 @@
 import logging
-from typing import cast
-from aiogram import Router, types, F
-from aiogram.filters import Command, StateFilter
+from aiogram import Router
+from aiogram.filters import Command
 from aiogram.types.message import Message
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
-from glpi_bot.bot.keyboards import main_kb
 from aiogram.fsm.context import FSMContext
+
 from glpi_bot.bot.states import BaseStates, AuthStates
 from glpi_bot.services import DBService
+from glpi_bot.bot.keyboards import main_kb
 
 
 logger = logging.getLogger(__name__)
 
 
 START_MESSAGE = (
-    "👋 Привет! Я ПРОФИТ-бот для работы с GLPI.\n"
-    "С моей помощью вы можете создать заявку."
+    "👋 Привет! Я помогу вам создать заявку "
+    "в техническую поддержку <b>ООО \"Проф ИТ\"</b>"
 )
 
 AUTH_REQUIRED_MESSAGE = (
-    "Для продолжения взаимодействия с ботом необходима авторизация\n"
+    "Для продолжения работы с ботом <b>необходима авторизация</b>\n"
     "Введите свой логин, используемый в вашей организации "
-    "(н-р: <code>ivanov_ii</code>):"
+    "(например: <code>ivanov_ii</code>):"
 )
 
 
