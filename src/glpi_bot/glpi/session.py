@@ -35,7 +35,8 @@ class GLPISessionManager:
     def get_session(self):
         """Контекстный менеджер для работы с сессией GLPI"""
         try:
-            self._open_session()
+            if self._is_token_expired():
+                self._open_session()
             yield self
         except Exception as e:
             logger.error(f"Ошибка во время работы сессии: {e}")
@@ -59,6 +60,7 @@ class GLPISessionManager:
         except Exception:
             logger.debug("Не удалось завершить предыдущую сессию", exc_info=True)
 
+
     def _open_session(self):
         """Установка соединения с GLPI API"""
         try:
@@ -74,14 +76,16 @@ class GLPISessionManager:
             response.raise_for_status()
 
             self._session_token = response.json().get('session_token')
-            logger.info(f"Получен токен: {self._session_token}")
-            # Установка времени жизни токена
             self._token_expires = datetime.now() + timedelta(minutes=5)
             logger.info(f"Сессия успешно открыта")
 
         except requests.exceptions.RequestException as e:
+            # Очищаем токен, если сессия не открылась
+            self._session_token = None
+            self._token_expires = None
             logger.error(f"Ошибка подключения к GLPI: {e}", exc_info=True)
             raise ConnectionError(f"Ошибка подключения к GLPI: {e}") from e
+
 
     def _close_session(self):
         """Закрытие сессии GLPI"""
@@ -104,3 +108,14 @@ class GLPISessionManager:
         finally:
             self._session_token = None
             self._token_expires = None
+
+
+    def _is_token_expired(self) -> bool:
+        """Проверяет истек ли срок действия токена сессии.
+
+        Returns:
+            bool: True если токен истек или не установлен, False если активен
+        """
+        if not self._token_expires:
+            return True
+        return datetime.now() >= self._token_expires

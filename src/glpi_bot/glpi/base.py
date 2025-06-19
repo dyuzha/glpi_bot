@@ -31,8 +31,6 @@ class GLPIAPIError(Exception):
         super().__init__(message)
 
 
-
-
 class GLPIBase:
     """
     Базовый класс для работы с GLPI API
@@ -68,7 +66,7 @@ class GLPIBase:
             timeout: Таймаут запроса в секундах
 
         Returns:
-            Ответ API или None для статуса 204
+            Ответ API или None для статуса 204, или НЕТ КОНТЕНТА
 
         Raises:
             GLPIUnauthorizedError: Если нет сессии

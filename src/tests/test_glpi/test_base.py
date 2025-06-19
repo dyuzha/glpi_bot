@@ -4,14 +4,15 @@ import pytest
 from unittest.mock import Mock, patch
 from glpi_bot.glpi.base import GLPIBase, GLPIAPIError, GLPIUnauthorizedError
 from glpi_bot.glpi.session import GLPISessionManager
+from tests.test_env import GLPI_TEST_API_URL,
 
 
 @pytest.fixture
 def mock_session_manager():
     manager = Mock(spec=GLPISessionManager)
-    manager.url = "http://glpi.example.com"
+    manager.url = GLPI_TEST_API_URL
     manager._session_token = "test_token"
-    manager._app_token = "app_token"
+    manager._app_token = ""
     return manager
 
 
