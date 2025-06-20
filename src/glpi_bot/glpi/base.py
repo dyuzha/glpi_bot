@@ -3,6 +3,8 @@
 import logging
 import aiohttp
 from typing import Optional
+
+from aiohttp.client import ContentTypeError
 from glpi_bot.glpi.session import GLPISessionManager
 
 
@@ -107,22 +109,18 @@ class GLPIBase:
                     timeout=aiohttp.ClientTimeout(total=timeout),
                 ) as response:
 
-                    # if 200 <= response.status < 300:
-                    #
-                    #     # Обработка пустого ответа
-                    #     text = await response.text()
-                    #     if response.status == 204 or not text.strip():
-                    #         return None
-                    #
-                    #     return await response.json()
-
+                    # Обработка пустых ответов
                     if 200 <= response.status < 300:
                         if response.status == 204:
+                            print("status: 204")
                             return None
 
                         try:
+                            print(f"response: {await response.json()}")
                             return await response.json()
-                        except aiohttp.ContentTypeError:
+
+                        except ContentTypeError:
+                            print("status: ContentTypeError")
                             return None
 
                     # Обработка ошибки
@@ -155,7 +153,7 @@ class GLPIBase:
                   timeout: int = 10
                 )-> Optional[dict]:
 
-        await self._make_request('GET', endpoint, params=params,
+        return await self._make_request('GET', endpoint, params=params,
                                  headers=headers, timeout=timeout)
 
     async def post(self,
@@ -164,8 +162,7 @@ class GLPIBase:
                    timeout: int = 10
                 ) -> Optional[dict]:
         headers = {'Content-Type': 'application/json'}
-
-        await self._make_request('POST', endpoint, json_data=json_data,
+        return await self._make_request('POST', endpoint, json_data=json_data,
                                  headers=headers, timeout=timeout)
 
     async def put(self,
@@ -175,7 +172,7 @@ class GLPIBase:
                   timeout: int = 10
                 ) -> Optional[dict]:
 
-        await self._make_request('PUT', endpoint, json_data=json_data,
+        return await self._make_request('PUT', endpoint, json_data=json_data,
                                  headers=headers, timeout=timeout)
 
     async def delete(self,
@@ -185,5 +182,5 @@ class GLPIBase:
                      timeout: int = 10
                 ) -> Optional[dict]:
 
-        await self._make_request('DELETE', endpoint, json_data=json_data,
+        return await self._make_request('DELETE', endpoint, json_data=json_data,
                                  headers=headers, timeout=timeout)

@@ -74,10 +74,10 @@ async def test_get_api_error(session_manager):
         assert e.value.status_code == 400
 
 
-# async def test_get_smoke(session_manager):
-#     base = GLPIBase(session_manager)
-#
-#     with aioresponses() as m:
-#         m.get(f"{GLPIEnv.URL}/Ticket", payload={"data": "ok"}, status=200)
-#         result = await base.get("Ticket")
-#         assert result is not None
+async def test_get_smoke(session_manager):
+    base = GLPIBase(session_manager)
+
+    with aioresponses() as m:
+        m.get(f"{GLPIEnv.URL}/Ticket", payload={"data": "ok"}, status=200)
+        result = await base.get("Ticket")
+        assert result is not None

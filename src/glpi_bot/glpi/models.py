@@ -1,7 +1,6 @@
 # glpi/models.py
 
 import logging
-# import requests
 from typing import Optional
 from glpi_bot.glpi import GLPIBase
 
@@ -21,12 +20,12 @@ class GLPIUser:
 
 class GLPIInterface(GLPIBase):
 
-    def create_ticket(self, **data) -> Optional[dict]:
+    async def create_ticket(self, **data) -> Optional[dict]:
         """Создание заявки"""
         ticket_data = {"input": data}
-        return self.post(endpoint="Ticket", json_data=ticket_data)
+        return await self.post(endpoint="Ticket", json_data=ticket_data)
 
-    def get_user(self, login: str) -> Optional[GLPIUser]:
+    async def get_user(self, login: str) -> Optional[GLPIUser]:
         """Получение пользователя GLPI"""
         # Использую contains потомучто equals не работает
         data = {
@@ -41,9 +40,12 @@ class GLPIInterface(GLPIBase):
             "range": "0-1000",
         }
 
-        responce = self.post(endpoint="search/User", json_data=data)
-        logger.info(f"responce: {responce}")
-        if responce['totalcount'] == 0:
+        responce = await self.post(endpoint="search/User", json_data=data)
+
+        if responce is None:
+            return None
+
+        if responce.get('totalcount', 0) == 0:
             return None
 
         # Отфильтровываю вывод до полного совпадения (костыль)
@@ -51,9 +53,11 @@ class GLPIInterface(GLPIBase):
         for user in users:
             if user["1"] == login:
                 return GLPIUser(**user)
+
         return None
 
-    def get_all_users(self, range_limit: str = "0-1000") -> list:
+
+    async def get_all_users(self, range_limit: str = "0-1000") -> list[GLPIUser]:
         """
         Получение списка всех пользователей GLPI
 
@@ -68,15 +72,23 @@ class GLPIInterface(GLPIBase):
         }
 
         try:
-            response = self.post(endpoint="search/User", json_data=search_params)
+            response = await self.post(
+                    endpoint="search/User",
+                    json_data=search_params
+                    )
+
+            if response is None:
+                raise ValueError("Ответ от GLPI API - None")
+
         except Exception as e:
             logger.error(f"Ошибка при получении списка пользователей: {e}")
             raise
-        else:
-            users = response['data']
-            return [GLPIUser(**user) for user in users]
 
-    def get_all_entities(self) -> dict:
+        users = response.get('data', [])
+        return [GLPIUser(**user) for user in users]
+
+
+    async def get_all_entities(self) -> dict[str, str]:
         """
         Получение списка всех организаций (entities) из GLPI
         Возвращает список словарей с id и названиями организаций
@@ -89,7 +101,7 @@ class GLPIInterface(GLPIBase):
         }
 
         try:
-            response = self.post(endpoint="search/Entity", json_data=search_params)
+            response = await self.post(endpoint="search/Entity", json_data=search_params)
             return {
                 entity["1"].rsplit("> ", 1)[-1]: entity["2"]
                 for entity in response.get('data', [])

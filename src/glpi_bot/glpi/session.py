@@ -78,6 +78,7 @@ class GLPISessionManager:
                 self._token_expires = datetime.now() + timedelta(minutes=5)
                 logger.info(f"Сессия успешно открыта")
 
+
         except ClientError as e:
             self._session_token = None
             self._token_expires = None

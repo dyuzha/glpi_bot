@@ -35,6 +35,8 @@ build-backend = "poetry.core.masonry.api"
 addopts = "--asyncio-mode=auto"
 testpaths = ["tests"]
 python_files = "test_*.py"
+log_cli = true
+log_cli_level = "DEBUG"
 markers = [
     "integration: mark test as integration-level)",
     "int-glpi: mark test as integration-level (requires real GLPI server)",
