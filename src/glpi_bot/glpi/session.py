@@ -2,9 +2,8 @@
 
 import asyncio
 import logging
-import aiohttp
-from aiohttp import ClientTimeout
 from typing import Optional
+from aiohttp import ClientError, ClientTimeout, ClientSession
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 
@@ -31,7 +30,7 @@ class GLPISessionManager:
         }
         self._session_token: Optional[str] = None
         self._token_expires: Optional[datetime] = None
-        self._client = aiohttp.ClientSession()
+        self._client = ClientSession()
         self._lock = asyncio.Lock()
 
 
@@ -48,6 +47,11 @@ class GLPISessionManager:
             raise
 
 
+    @property
+    def client_session(self) -> ClientSession:
+        return self._client
+
+
     async def shutdown(self):
         """Явно закрывает сессию HTTP client'a"""
         await self._close_session()
@@ -55,8 +59,7 @@ class GLPISessionManager:
 
 
     async def _open_session(self):
-        """Установка соединения с GLPI API"""
-
+        """Установка соединения"""
         try:
             async with self._client.post(
                     f"{self.url}/initSession",
@@ -75,7 +78,7 @@ class GLPISessionManager:
                 self._token_expires = datetime.now() + timedelta(minutes=5)
                 logger.info(f"Сессия успешно открыта")
 
-        except aiohttp.ClientError as e:
+        except ClientError as e:
             self._session_token = None
             self._token_expires = None
             logger.error(f"Ошибка подключения к GLPI: {e}", exc_info=True)
@@ -83,6 +86,7 @@ class GLPISessionManager:
 
 
     async def _close_session(self):
+        """Закрытие соединения"""
         if not self._session_token:
             return
 
@@ -97,7 +101,7 @@ class GLPISessionManager:
             ):
                 logger.info("Сессия успешно закрыта")
 
-        except aiohttp.ClientError as e:
+        except ClientError as e:
             logger.warning(f"Не удалось закрыть сессию: {e}")
         finally:
             self._session_token = None

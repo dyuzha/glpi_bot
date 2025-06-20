@@ -1,85 +1,83 @@
 # glpi_bot/glpi/tests/test_base.py
 
 import pytest
-from unittest.mock import Mock, patch
+from aioresponses import aioresponses
+
 from glpi_bot.glpi.base import GLPIBase, GLPIAPIError, GLPIUnauthorizedError
 from glpi_bot.glpi.session import GLPISessionManager
-from tests.test_env import GLPI_TEST_API_URL,
+from tests.test_env import GLPIEnv
 
 
 @pytest.fixture
-def mock_session_manager():
-    manager = Mock(spec=GLPISessionManager)
-    manager.url = GLPI_TEST_API_URL
-    manager._session_token = "test_token"
-    manager._app_token = ""
-    return manager
+async def session_manager():
+    manager = GLPISessionManager(
+        url=GLPIEnv.URL,
+        app_token=GLPIEnv.APP_TOKEN,
+        username=GLPIEnv.USERNAME,
+        password=GLPIEnv.PASSWORD,
+    )
+    manager._session_token = "session_token"
+    yield manager
+    await manager.shutdown()
 
 
-@pytest.fixture
-def glpi_base(mock_session_manager):
-    return GLPIBase(mock_session_manager)
+async def test_init(session_manager):
+    assert session_manager.url == GLPIEnv.URL
+    assert session_manager._app_token == GLPIEnv.APP_TOKEN
+    assert session_manager._auth_data == {
+        'login': GLPIEnv.USERNAME,
+        'password': GLPIEnv.PASSWORD,
+        'app_token': GLPIEnv.APP_TOKEN
+    }
+    assert session_manager._session_token == "session_token"
+    assert session_manager._token_expires is None
 
 
-def test_initialization(mock_session_manager):
-    base = GLPIBase(mock_session_manager)
-    assert base.session_manager == mock_session_manager
+@pytest.mark.parametrize("method", ["GET", "POST", "PUT", "DELETE"])
+async def test_make_request_success(method, session_manager):
+    base = GLPIBase(session_manager)
 
-def test_make_request_success(glpi_base):
-    with patch('requests.request') as mock_request:
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"success": True}
-        mock_response.text = '{"success": true}
-        mock_request.return_value = mock_response
+    with aioresponses() as m:
+        getattr(m, method.lower())(
+            url=f"{GLPIEnv.URL}/Ticket",
+            status=200,
+            payload={"data": f"{method.lower()}_ok"},
+        )
 
-        result = glpi_base._make_request('GET', 'ticket')
-        assert result == {"success": True}
+        response = await base._make_request(method, "Ticket")
+        assert response == {"data": f"{method.lower()}_ok"}
 
-def test_make_request_204(glpi_base):
-    with patch('requests.request') as mock_request:
-        mock_response = Mock()
-        mock_response.status_code = 204
-        mock_response.text = ''
-        mock_request.return_value = mock_response
 
-        result = glpi_base._make_request('DELETE', 'ticket/1')
-        assert result is None
-
-def test_make_request_unauthorized():
-    manager = Mock(spec=GLPISessionManager)
-    manager._session_token = None
-    base = GLPIBase(manager)
+async def test_get_unauthrized(session_manager):
+    session_manager._session_token = None
+    base = GLPIBase(session_manager)
 
     with pytest.raises(GLPIUnauthorizedError):
-        base._make_request('GET', 'ticket')
+        await base.get("Ticket")
 
-def test_make_request_api_error(glpi_base):
-    with patch('requests.request') as mock_request:
-        mock_response = Mock()
-        mock_response.status_code = 404
-        mock_response.json.return_value = {"error": "Not found"}
-        mock_response.text = '{"error": "Not found"}'
-        mock_request.return_value = mock_response
-        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError()
 
-        with pytest.raises(GLPIAPIError) as excinfo:
-            glpi_base._make_request('GET', 'nonexistent')
-        assert "HTTP Error 404" in str(excinfo.value)
+async def test_get_api_error(session_manager):
+    session_manager._session_token = "session_token"
+    base = GLPIBase(session_manager)
 
-def test_get_method(glpi_base):
-    with patch.object(glpi_base, '_make_request') as mock_make_request:
-        mock_make_request.return_value = {"id": 1}
-        result = glpi_base.get('ticket/1')
-        mock_make_request.assert_called_once_with('GET', 'ticket/1', params=None, headers=None, timeout=10)
-        assert result == {"id": 1}
+    with aioresponses() as m:
+        m.get(
+                f"{GLPIEnv.URL}/Ticket",
+                payload={"message": "Bad request"},
+                status=400,
+                )
 
-def test_post_method(glpi_base):
-    with patch.object(glpi_base, '_make_request') as mock_make_request:
-        test_data = {"name": "Test Ticket"}
-        mock_make_request.return_value = {"id": 2}
-        result = glpi_base.post('ticket', test_data)
-        mock_make_request.assert_called_once_with(
-            'POST', 'ticket', json_data=test_data, headers={'Content-Type': 'application/json'}, timeout=10
-        )
-        assert result == {"id": 2}
+        with pytest.raises(GLPIAPIError) as e:
+            await base.get("Ticket")
+
+        assert "Bad request" in str(e.value)
+        assert e.value.status_code == 400
+
+
+# async def test_get_smoke(session_manager):
+#     base = GLPIBase(session_manager)
+#
+#     with aioresponses() as m:
+#         m.get(f"{GLPIEnv.URL}/Ticket", payload={"data": "ok"}, status=200)
+#         result = await base.get("Ticket")
+#         assert result is not None

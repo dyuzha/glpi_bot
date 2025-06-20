@@ -1,7 +1,7 @@
 # glpi/base.py
 
 import logging
-import requests
+import aiohttp
 from typing import Optional
 from glpi_bot.glpi.session import GLPISessionManager
 
@@ -46,16 +46,19 @@ class GLPIBase:
     #         'Accert': 'application/json'
     #         }
 
+
     def __init__(self, session_manager: GLPISessionManager):
         self.session_manager = session_manager
 
-    def _make_request(self,
-                     method: str,
-                     endpoint: str,
-                     json_data: Optional[dict] = None,
-                     params: Optional[dict] = None,
-                     headers: Optional[dict] = None,
-                     timeout: int = 10) -> Optional[dict]:
+
+    async def _make_request(self,
+                            method: str,
+                            endpoint: str,
+                            json_data: Optional[dict] = None,
+                            params: Optional[dict] = None,
+                            headers: Optional[dict] = None,
+                            timeout: int = DEFAULT_TIMEOUT
+            ) -> Optional[dict]:
         """
         Выполнение запроса к API GLPI
 
@@ -83,6 +86,8 @@ class GLPIBase:
         if not self.session_manager._session_token:
             raise GLPIUnauthorizedError("Сессия не найдена")
 
+        session = self.session_manager.client_session
+
         url = f"{self.session_manager.url}/{endpoint}"
 
         default_headers = {
@@ -93,82 +98,92 @@ class GLPIBase:
         final_headers = {**default_headers, **(headers or {})}
 
         try:
-            response = requests.request(
-                method=method.upper(),
-                url=url,
-                headers=final_headers,
-                json=json_data,
-                params=params,
-                timeout=timeout
-            )
+            async with session.request(
+                    method=method.upper(),
+                    url=url,
+                    headers=final_headers,
+                    json=json_data,
+                    params=params,
+                    timeout=aiohttp.ClientTimeout(total=timeout),
+                ) as response:
 
-            # Обработка 204 no Content
-            if response.status_code == 204:
-                return None
+                    # if 200 <= response.status < 300:
+                    #
+                    #     # Обработка пустого ответа
+                    #     text = await response.text()
+                    #     if response.status == 204 or not text.strip():
+                    #         return None
+                    #
+                    #     return await response.json()
 
-            response.raise_for_status()
+                    if 200 <= response.status < 300:
+                        if response.status == 204:
+                            return None
 
-            # Обработка пустого ответа
-            if not response.text.strip():
-                return None
+                        try:
+                            return await response.json()
+                        except aiohttp.ContentTypeError:
+                            return None
 
-            return response.json()
+                    # Обработка ошибки
+                    error_msg = await self._parse_error_response(response)
+                    logger.error(error_msg)
+                    raise GLPIAPIError(error_msg, status_code=response.status)
 
-        except requests.exceptions.HTTPError as e:
-            error_msg = self._parse_error_response(e)
-            logger.error(error_msg)
-            raise GLPIAPIError(error_msg, getattr(e.response, 'status_code', None)) from e
+        except aiohttp.ClientError as e:
+            logger.exception("Ошибка API запроса")
+            raise GLPIRequestError(f"Ошибка API запроса: {str(e)}") from e
 
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Ошибка API запроса: {str(e)}"
-            logger.error(error_msg)
-            raise GLPIRequestError(error_msg) from e
 
-    def _parse_error_response(self, error: requests.exceptions.HTTPError) -> str:
+    async def _parse_error_response(self, response: aiohttp.ClientResponse) -> str:
         """Парсинг ошибки HTTP для получения деталей"""
         try:
-            if error.response is None:
-                return f"HTTP Error: {str(error)}"
+            error_data = await response.json()
+            return (
+                    f"HTTP Error {response.status}:"
+                    f"{error_data.get('message', await response.text())}"
+                    )
 
-            error_data = error.response.json()
-            return (f"HTTP Error {error.response.status_code}: "
-                    f"{error_data.get('message', error.response.text)}")
-        except ValueError:
-            return f"HTTP Error {error.response.status_code}: {error.response.text}"
+        except Exception:
+            return f"HTTP Error {response.status}: {await response.text()}"
 
 
-    def get(self,
-            endpoint: str,
-            params: Optional[dict] = None,
-            headers: Optional[dict] = None,
-            timeout: int = 10) -> Optional[dict]:
+    async def get(self,
+                  endpoint: str,
+                  params: Optional[dict] = None,
+                  headers: Optional[dict] = None,
+                  timeout: int = 10
+                )-> Optional[dict]:
 
-        return self._make_request('GET', endpoint, params=params, headers=headers,
-                                 timeout=timeout)
+        await self._make_request('GET', endpoint, params=params,
+                                 headers=headers, timeout=timeout)
 
-    def post(self,
-             endpoint: str,
-             json_data: Optional[dict],
-             timeout: int = 10) -> Optional[dict]:
+    async def post(self,
+                   endpoint: str,
+                   json_data: Optional[dict],
+                   timeout: int = 10
+                ) -> Optional[dict]:
         headers = {'Content-Type': 'application/json'}
 
-        return self._make_request('POST', endpoint, json_data=json_data,
+        await self._make_request('POST', endpoint, json_data=json_data,
                                  headers=headers, timeout=timeout)
 
-    def put(self,
-            endpoint: str,
-            json_data: Optional[dict] = None,
-            headers: Optional[dict] = None,
-            timeout: int = 10) -> Optional[dict]:
+    async def put(self,
+                  endpoint: str,
+                  json_data: Optional[dict] = None,
+                  headers: Optional[dict] = None,
+                  timeout: int = 10
+                ) -> Optional[dict]:
 
-        return self._make_request('PUT', endpoint, json_data=json_data,
+        await self._make_request('PUT', endpoint, json_data=json_data,
                                  headers=headers, timeout=timeout)
 
-    def delete(self,
-               endpoint: str,
-               json_data: Optional[dict],
-               headers: Optional[dict] = None,
-               timeout: int = 10) -> Optional[dict]:
+    async def delete(self,
+                     endpoint: str,
+                     json_data: Optional[dict],
+                     headers: Optional[dict] = None,
+                     timeout: int = 10
+                ) -> Optional[dict]:
 
-        return self._make_request('DELETE', endpoint, json_data=json_data,
+        await self._make_request('DELETE', endpoint, json_data=json_data,
                                  headers=headers, timeout=timeout)

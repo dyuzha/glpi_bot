@@ -5,30 +5,15 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 from aioresponses import aioresponses
 from yarl import URL
-
+import aiohttp
 
 from glpi_bot.glpi.session import GLPISessionManager
+
+from tests.conftest import session_manager, frozen_now
 from tests.test_env import GLPIEnv
-import aiohttp
 
 
 pytestmark = pytest.mark.asyncio
-
-@pytest.fixture
-async def session_manager():
-    manager = GLPISessionManager(
-        url=GLPIEnv.URL,
-        app_token=GLPIEnv.APP_TOKEN,
-        username=GLPIEnv.USERNAME,
-        password=GLPIEnv.PASSWORD,
-    )
-    yield manager
-    await manager.shutdown()
-
-
-@pytest.fixture
-def frozen_now():
-    return datetime(2023, 1, 1, 12, 0, 0)
 
 
 async def test_init(session_manager):
@@ -132,9 +117,9 @@ async def test_context_manager_success(session_manager):
             status=200
         )
 
-        async with session_manager.get_session() as sm:
-            assert sm._session_token == 'test_token'
-            assert sm._token_expires is not None
+        async with session_manager.get_session() as manager:
+            assert manager._session_token == 'test_token'
+            assert manager._token_expires is not None
 
 
 @pytest.mark.parametrize(
@@ -170,6 +155,6 @@ async def test_get_new_token(
             status=200
             )
 
-        async with session_manager.get_session() as sm:
-            token_changed = sm._session_token != initial_token
+        async with session_manager.get_session() as manager:
+            token_changed = manager._session_token != initial_token
             assert token_changed is expected_new_token
