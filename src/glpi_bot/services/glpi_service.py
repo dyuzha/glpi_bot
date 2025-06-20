@@ -1,9 +1,10 @@
 # services/glpiservice.py
+
 from dataclasses import dataclass
 
 from glpi_bot.glpi.models import GLPIInterface
 from glpi_bot.glpi.session import GLPISessionManager
-from glpi_bot.services.cache import BaseCache
+from glpi_bot.services.async_cache import AsyncBaseCache
 
 
 REQUEST_TYPE_TELEGRAM = 14
@@ -18,17 +19,17 @@ class TicketData:
     itilcategories_id: int
 
 
-class OrganisationCache(BaseCache):
+class OrganisationCache(AsyncBaseCache):
     def __init__(self, session_manager):
         super().__init__(ttl_seconds=None)
         self.session_manager = session_manager
 
-    def load(self, session=None) -> dict:
+    async def load(self, session=None):
         if session is None:
             with self.session_manager.get_session() as session:
-                return GLPIInterface(session).get_all_entities()
+                return await GLPIInterface(session).get_all_entities()
         else:
-            return GLPIInterface(session).get_all_entities()
+            return await GLPIInterface(session).get_all_entities()
 
 
 class GLPITicketManager:
@@ -36,8 +37,8 @@ class GLPITicketManager:
         self.session_manager = session_manager
         self.org_cache = org_cache
 
-    def send_ticket(self, ticket_data: TicketData) -> dict:
-        with self.session_manager.get_session() as session:
+    async def send_ticket(self, ticket_data: TicketData) -> dict:
+        async with self.session_manager.get_session() as session:
             glpi = GLPIInterface(session)
 
             user = glpi.get_user(ticket_data.login)
@@ -48,7 +49,7 @@ class GLPITicketManager:
             if user.organisation not in org_data:
                 raise ValueError(f"Организация '{user.organisation}' не найдена")
 
-            return glpi.create_ticket(
+            return await glpi.create_ticket(
                 name=ticket_data.name,
                 content=ticket_data.content,
                 type=ticket_data.type,
