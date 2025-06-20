@@ -1,10 +1,12 @@
 # glpi/session.py
 
+import asyncio
 import logging
-import requests
+import aiohttp
+from aiohttp import ClientTimeout
 from typing import Optional
 from datetime import datetime, timedelta
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 
 
 logger = logging.getLogger(__name__)
@@ -29,81 +31,73 @@ class GLPISessionManager:
         }
         self._session_token: Optional[str] = None
         self._token_expires: Optional[datetime] = None
+        self._client = aiohttp.ClientSession()
+        self._lock = asyncio.Lock()
 
 
-    @contextmanager
-    def get_session(self):
+    @asynccontextmanager
+    async def get_session(self):
         """Контекстный менеджер для работы с сессией GLPI"""
         try:
-            if self._is_token_expired():
-                self._open_session()
+            async with self._lock:
+                if self._is_token_expired():
+                    await self._open_session()
             yield self
         except Exception as e:
             logger.error(f"Ошибка во время работы сессии: {e}")
             raise
-        finally:
-            self._close_session()
 
 
-    def _force_kill_previous_session(self):
-        """Принудитльное завершение предыдущей сесии"""
-        try:
-            if self._session_token:
-                requests.get(
-                    f"{self.url}/killSession",
-                    headers={
-                        'Session-Token': self._session_token,
-                        'App-Token': self._app_token
-                    },
-                    timeout=3
-                )
-        except Exception:
-            logger.debug("Не удалось завершить предыдущую сессию", exc_info=True)
+    async def shutdown(self):
+        """Явно закрывает сессию HTTP client'a"""
+        await self._close_session()
+        await self._client.close()
 
 
-    def _open_session(self):
+    async def _open_session(self):
         """Установка соединения с GLPI API"""
+
         try:
-            response = requests.post(
-                f"{self.url}/initSession",
-                headers={
-                    'Content-Type': 'application/json',
-                    'App-Token': self._app_token
-                },
-                json=self._auth_data,
-                timeout=10
-            )
-            response.raise_for_status()
+            async with self._client.post(
+                    f"{self.url}/initSession",
+                    headers={
+                             'Content-Type': 'application/json',
+                             'App-Token': self._app_token,
+                             },
+                    json=self._auth_data,
+                    timeout=ClientTimeout(total=10)
+                    ) as response:
 
-            self._session_token = response.json().get('session_token')
-            self._token_expires = datetime.now() + timedelta(minutes=5)
-            logger.info(f"Сессия успешно открыта")
+                response.raise_for_status()
+                data = await response.json()
 
-        except requests.exceptions.RequestException as e:
-            # Очищаем токен, если сессия не открылась
+                self._session_token = data.get('session_token')
+                self._token_expires = datetime.now() + timedelta(minutes=5)
+                logger.info(f"Сессия успешно открыта")
+
+        except aiohttp.ClientError as e:
             self._session_token = None
             self._token_expires = None
             logger.error(f"Ошибка подключения к GLPI: {e}", exc_info=True)
             raise ConnectionError(f"Ошибка подключения к GLPI: {e}") from e
 
 
-    def _close_session(self):
-        """Закрытие сессии GLPI"""
+    async def _close_session(self):
         if not self._session_token:
             return
 
         try:
-            requests.get(
+            async with self._client.get(
                 f"{self.url}/killSession",
                 headers={
                     'Session-Token': self._session_token,
                     'App-Token': self._app_token
                 },
-                timeout=5
-            )
-            logger.info("Сессия успешно закрыта")
+                timeout=ClientTimeout(total=5)
+            ):
+                logger.info("Сессия успешно закрыта")
 
-        except requests.exceptions.RequestException as e:
+        except aiohttp.ClientError as e:
             logger.warning(f"Не удалось закрыть сессию: {e}")
         finally:
             self._session_token = None
@@ -119,3 +113,20 @@ class GLPISessionManager:
         if not self._token_expires:
             return True
         return datetime.now() >= self._token_expires
+
+
+    async def _force_kill_previous_session(self):
+        """Принудитльное завершение предыдущей сесии"""
+        try:
+            if self._session_token:
+                async with self._client.get(
+                    f"{self.url}/killSession",
+                    headers={
+                        'Session-Token': self._session_token,
+                        'App-Token': self._app_token
+                    },
+                    timeout=ClientTimeout(total=3)
+                    ) as response:
+                        await response.text()
+        except Exception:
+            logger.debug("Не удалось завершить предыдущую сессию", exc_info=True)

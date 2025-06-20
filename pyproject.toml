@@ -12,6 +12,7 @@ requests = "^2.32.3"
 aiosmtplib = "^4.0.1"
 sqlalchemy = "^2.0.40"
 ldap3 = "^2.9.1"
+aioresponses = "^0.7.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -19,7 +20,13 @@ pytest = "*"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
 requests-mock = "^1.12.1"
+pytest-asyncio = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--asyncio-mode=auto"
+testpaths = ["tests"]
+python_files = "test_*.py"
