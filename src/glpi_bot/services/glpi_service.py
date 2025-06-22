@@ -33,7 +33,10 @@ class OrganisationCache(AsyncBaseCache):
 
 
 class GLPITicketManager:
-    def __init__(self, session_manager: GLPISessionManager, org_cache: OrganisationCache):
+    def __init__(self,
+                 session_manager: GLPISessionManager,
+                 org_cache: OrganisationCache
+                 ):
         self.session_manager = session_manager
         self.org_cache = org_cache
 
