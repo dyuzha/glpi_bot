@@ -1,3 +1,4 @@
+from _pytest.mark.structures import _ParametrizeMarkDecorator
 import pytest
 
 from tests.test_env import GLPIEnv
@@ -8,8 +9,8 @@ from glpi_bot.services.glpi_service import (
 )
 
 
-@pytest.mark.asyncio
-async def test_send_ticket_integration():
+@pytest.mark.parametrize("login", ["dyuzhev_mn", "admin"])
+async def test_send_ticket_integration(login):
     session_manager = GLPISessionManager(
         url=GLPIEnv.URL,
         app_token=GLPIEnv.APP_TOKEN,
@@ -21,7 +22,7 @@ async def test_send_ticket_integration():
     manager = GLPITicketManager(session_manager, org_cache)
 
     ticket_data = TicketData(
-        login="admin",  # существующий логин
+        login=login,  # существующий логин
         name="Integration Test Ticket",
         content="Тестовая заявка, созданная автотестом",
         type=1,  # incident or request
