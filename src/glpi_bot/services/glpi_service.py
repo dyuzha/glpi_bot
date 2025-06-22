@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from glpi_bot.glpi.models import GLPIInterface
+from glpi_bot.glpi.models import GLPIInterface, GLPIUser
 from glpi_bot.glpi.session import GLPISessionManager
 from glpi_bot.services.async_cache import AsyncBaseCache
 
@@ -41,15 +41,16 @@ class GLPITicketManager:
         async with self.session_manager.get_session() as session:
             glpi = GLPIInterface(session)
 
-            user = glpi.get_user(ticket_data.login)
-            if user is None:
+            user = await glpi.get_user(ticket_data.login)
+            if not isinstance(user, GLPIUser):
                 raise ValueError(f"Пользователь '{ticket_data.login}' не найден")
 
-            org_data = self.org_cache.get(session=session)
+            org_data = await self.org_cache.get(session=session)
+
             if user.organisation not in org_data:
                 raise ValueError(f"Организация '{user.organisation}' не найдена")
 
-            return await glpi.create_ticket(
+            result = await glpi.create_ticket(
                 name=ticket_data.name,
                 content=ticket_data.content,
                 type=ticket_data.type,
@@ -58,3 +59,4 @@ class GLPITicketManager:
                 _users_id_requester=user.id,
                 entities_id=org_data[user.organisation],
             )
+            return result or {}

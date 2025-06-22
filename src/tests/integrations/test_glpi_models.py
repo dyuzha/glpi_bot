@@ -22,6 +22,17 @@ async def session_manager():
     await manager.shutdown()
 
 
+async def test_create_ticket_integration(session_manager):
+    async with session_manager.get_session() as session:
+        data = {"login": "dyuzhev_mn",
+                "name": "test",
+                "content": "test content",
+                "type": "1",
+                "itilcategories_id": "1",
+                }
+        interface = GLPIInterface(session)
+        await interface.create_ticket(**data)
+
 
 async def test_get_user_found_integration(session_manager):
     async with session_manager.get_session() as session:
