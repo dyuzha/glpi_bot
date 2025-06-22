@@ -26,7 +26,7 @@ class OrganisationCache(AsyncBaseCache):
 
     async def load(self, session=None):
         if session is None:
-            with self.session_manager.get_session() as session:
+            async with self.session_manager.get_session() as session:
                 return await GLPIInterface(session).get_all_entities()
         else:
             return await GLPIInterface(session).get_all_entities()
