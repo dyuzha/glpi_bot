@@ -1,4 +1,3 @@
-from _pytest.mark.structures import _ParametrizeMarkDecorator
 import pytest
 
 from tests.test_env import GLPIEnv
