@@ -40,6 +40,7 @@ class GLPITicketManager:
         self.session_manager = session_manager
         self.org_cache = org_cache
 
+
     async def send_ticket(self, ticket_data: TicketData) -> dict:
         async with self.session_manager.get_session() as session:
             glpi = GLPIInterface(session)
@@ -63,3 +64,8 @@ class GLPITicketManager:
                 entities_id=org_data[user.organisation],
             )
             return result or {}
+
+
+    async def shutdown_session(self):
+        """Явно закрывает открытую сессию"""
+        await self.session_manager.shutdown()

@@ -1,4 +1,5 @@
 # main.py
+import asyncio
 
 from glpi_bot.config_handlers import setup_logging
 from glpi_bot.services.factory import create_services
@@ -13,12 +14,20 @@ async def main():
     logger.info("Starting bot")
 
     services = create_services()
+    glpi_service = services["glpi_service"]
 
     bot, dp, on_startup = create_bot(services, TELEGRAM_TOKEN)
 
-    await dp.start_polling(bot)
+    try:
+        await on_startup()
+        await dp.start_polling(bot)
+    finally:
+        await glpi_service.shutdown_session()
+
 
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Выход по Ctrl+C")
