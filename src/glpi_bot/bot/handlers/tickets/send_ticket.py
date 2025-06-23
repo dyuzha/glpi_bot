@@ -8,13 +8,14 @@ from glpi_bot.bot.handlers.tickets.instances import bot_message
 from glpi_bot.bot.keyboards import main_kb
 from glpi_bot.bot.states import BaseStates, FinalStates
 from glpi_bot.services import GLPITicketManager
+from glpi_bot.services.db_service import DBService
 from glpi_bot.services.glpi_service import TicketData
 
 
 logger = logging.getLogger(__name__)
 
 
-def setup_send_ticket(glpi: GLPITicketManager):
+def setup_send_ticket(glpi: GLPITicketManager, db: DBService) -> Router:
     router = Router()
 
     @router.callback_query(F.data == "confirm", StateFilter(FinalStates.confirm))
@@ -28,17 +29,26 @@ def setup_send_ticket(glpi: GLPITicketManager):
             await callback.answer("Произошла ошибка. Попробуйте сначала.")
             return
 
+        try:
+            login = d.get("login") or db.get_login(callback.from_user.id) # тут я хочу найти по id пользователя
+        except Exception as e:
+            logger.debug(f"Не удалось получить логин, {e}")
+            await callback.answer("Произошла ошибка. Попробуйте сначала.")
+            return
+
         ticket_data = TicketData(
-                login = d['login'],
+                login = login,
                 # name = f"[{d['login']}] {d['title']}",
                 name = d['title'],
                 content = d['description'],
                 type = d['type'],
                 itilcategories_id = d['itilcategories_id']
         )
+        logger.debug("Данные по заявки собраны")
+
         try:
             # Создаем заявку в GLPI
-            response = glpi.send_ticket(ticket_data)
+            response = await glpi.send_ticket(ticket_data)
             logger.debug(f"Создание заявки вернуло: {response}")
 
         except Exception as e:

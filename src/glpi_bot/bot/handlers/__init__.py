@@ -25,7 +25,7 @@ def register_handlers(
     )
     entry_point_router = setup_entrypoint(db_service)
     admins_router = setup_admins_command(db_service)
-    send_ticket_router = setup_send_ticket(glpi_service)
+    send_ticket_router = setup_send_ticket(glpi=glpi_service, db=db_service)
 
     from .tickets import router as tickets_router
     # Вложенность роутеров
