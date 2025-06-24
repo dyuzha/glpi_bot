@@ -68,6 +68,7 @@ def setup_send_ticket(glpi: GLPITicketManager, db: DBService) -> Router:
                 f"Ссылка: https://sd.it4prof.ru/front/ticket.form.php?id={response['id']}\n"
                 f"<b>Номер:</b> #{response['id']}\n"
                 f"<b>Заголовок:</b> {d['title']}\n"
+                f"<b>Подробности:</b> {d['description']}\n"
                 f"<b>Статус:</b> В обработке"),
                 reply_markup=main_kb()
             )
