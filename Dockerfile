@@ -46,12 +46,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./src/glpi_bot ./glpi_bot
 COPY ./src/main.py .
 
-# Копируем скрипты и делаем их исполняемыми
-COPY ./scripts ./scripts
-RUN chmod +x scripts/*.sh
-
 # Копируем дополнительные сертификаты (если есть)
 # COPY ./data/certs/* /usr/local/share/ca-certificates/
+
+COPY ./scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Создаем папку для конфигов
 RUN mkdir -p /configs
@@ -65,4 +64,5 @@ ENV GLPI_TG_MAIL_CONF=/configs/mail_config.ini
 ENV GLPI_TG_SETTINGS=/configs/settings.ini
 
 # Запускаем приложение
-CMD ["python", "main.py"]
+# CMD ["python", "main.py"]
+CMD ["/entrypoint.sh"]
