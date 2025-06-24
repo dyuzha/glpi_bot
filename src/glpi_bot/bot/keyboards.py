@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from glpi_bot.bot.text import BACK_KEY, CANCEL_KEY
+from glpi_bot.bot.text_constants import BACK_KEY, CANCEL_KEY
 
 
 base_buttons: list[InlineKeyboardButton] = [
