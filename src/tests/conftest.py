@@ -5,7 +5,8 @@ import pytest
 from datetime import datetime
 
 from glpi_bot.glpi.session import GLPISessionManager
-from tests.test_env import GLPIEnv
+from glpi_bot.services.mail_service import EmailConfirmation
+from tests.test_env import GLPIEnv, MailEnv
 
 
 def pytest_configure():
@@ -13,6 +14,18 @@ def pytest_configure():
         level=logging.DEBUG,  # или INFO
         format="%(levelname)s:%(name)s:%(message)s"
     )
+
+
+@pytest.fixture
+def email_confirmation():
+    mail_confirmation = EmailConfirmation(
+        smtp_server=MailEnv.SMTP_SERVER,
+        smtp_port=MailEnv.SMTP_PORT,
+        smtp_username=MailEnv.SMTP_USERNAME,
+        smtp_password=MailEnv.SMTP_PASSWORD,
+        use_tls=MailEnv.USE_TLS
+    )
+    return mail_confirmation
 
 
 @pytest.fixture

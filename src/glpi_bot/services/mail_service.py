@@ -1,14 +1,14 @@
+import logging
 import aiosmtplib
 import ssl
-from email.mime.text import MIMEText
 import random
 import string
 from typing import Optional
-import logging
-# import certifi
+from email.mime.text import MIMEText
 
 
 logger = logging.getLogger(__name__)
+
 
 MAIL_SUBJECT = "Код подтверждения авторизации в Telegram-боте ПРОФИТ"
 MAIL_BODY = (
@@ -27,6 +27,7 @@ class EmailConfirmation():
         Введите этот код в сообщениях боту для регистрации.
         """
 
+
     def __init__(self, **mail_data):
         self.smtp_server = mail_data['smtp_server']
         self.smtp_port = mail_data['smtp_port']
@@ -34,10 +35,12 @@ class EmailConfirmation():
         self.smtp_password = mail_data['smtp_password']
         self.use_tls = mail_data['use_tls']
 
+
     def generate_confirmation_code(self, length=4) -> str:
         """Генерация случайного кода подтверждения"""
         characters = string.digits  # Используем только цифры
         return ''.join(random.choice(characters) for _ in range(length))
+
 
     def _build_confirm_mail(self, code: str, email_to: str) -> MIMEText:
         """Создание email сообщения"""
@@ -47,21 +50,30 @@ class EmailConfirmation():
         msg['To'] = email_to
         return msg
 
-    async def send_confirmation_email(self, email_to: str, length=4) -> Optional[str]:
+
+    async def send_confirmation_email(self,
+                                      email_to: str,
+                                      length=4,
+                                      test_env=False,
+                                ) -> Optional[str]:
         """Асинхронная отправка письма с кодом подтверждения"""
         code = self.generate_confirmation_code(length=length)
         logger.debug(f"Сгенерирован код подтверждения: <{code}>")
         msg = self._build_confirm_mail(code, email_to)
-        logger.debug(f"Собранно письмо для отправки:")
+        logger.debug(f"Собрано письмо для отправки")
 
 
-        # Настройка SSL контекста
-        # context = ssl.create_default_context()
-        # Используем системные сертификаты
-        # context.load_default_certs()
+        # Для тестов, если на хосте приложения нет корневых certs
+        if test_env:
+            # Выключает проверку TLS
+            context = ssl._create_unverified_context()
 
-        # Выключает проверку TLS (Для тестов, если на хосте приложения нет корневых certs)
-        context = ssl._create_unverified_context()
+        else:
+            # Настройка SSL контекста
+            context = ssl.create_default_context()
+            # Используем системные сертификаты
+            context.load_default_certs()
+
 
         try:
             logger.debug("Подключение к SMTP серверу")
@@ -80,10 +92,10 @@ class EmailConfirmation():
 
                 else:
                     await server.send_message(msg)
-                    logger.info(f"Письмо с кодом подтверждения успешно \
-отправлено на {msg['To']}")
-
+                    logger.info(f"Письмо с кодом подтверждения успешно"
+                                f"отправлено на {msg['To']}")
             return code
+
         except Exception as e:
             logger.warning(f"Ошибка при отправке письма на {msg['To']}: {e}")
             return None
