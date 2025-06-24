@@ -12,9 +12,10 @@ from glpi_bot.services import LDAPMailNotFound, LDAPError, LDAPUserNotFound
 from glpi_bot.bot.keyboards import auth_code_kb, main_kb
 from .models import AuthService
 from .settings import (
+        CONFIRMATION_CODE_SENT,
         LENGTH_CODE,
         MAIL_NOT_FOUND,
-        USER_NOT_FOUND,
+        LOGIN_NOT_FOUND,
         AUTHORIZATION_ERROR
 )
 
@@ -91,7 +92,7 @@ def setup_authorization(
             return
 
         except LDAPUserNotFound:
-            await message.answer(USER_NOT_FOUND,
+            await message.answer(LOGIN_NOT_FOUND,
                                  reply_markup=types.ReplyKeyboardRemove())
             logger.debug(f"Неудачная попытка ввода логина: {message.text}")
 
@@ -154,12 +155,8 @@ def setup_authorization(
         auth_state.code = code
         auth_state.code_handler.last_request_time = datetime.now()
 
-        await message.answer(
-            f"Код подтверждения отправлен на <b>{mail}</b>\n."
-            f"⏳ Код действителен в течение 5 минут\n"
-            f"Введите его для завершения авторизации:",
-            parse_mode="HTML", reply_markup=auth_code_kb()
-        )
+        await message.answer(CONFIRMATION_CODE_SENT.format(mail=mail),
+                             parse_mode="HTML", reply_markup=auth_code_kb())
         await state.set_state(AuthStates.CODE_HANDLER)
 
 
@@ -244,7 +241,7 @@ def setup_authorization(
 
         except Exception as e:
             logger.warning(f"Error: {e}")
-            await message.answer("Ошибка при добавления пользователя",
+            await message.answer("Ошибка при добавления ользователя",
                                  "попробуйте позже")
             await state.clear()
             return

@@ -2,14 +2,15 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery
 
-from glpi_bot.bot.handlers.tickets.instances import bot_message
 from glpi_bot.bot.keyboards import main_kb
 from glpi_bot.bot.states import BaseStates, FinalStates
 from glpi_bot.services import GLPITicketManager
 from glpi_bot.services.db_service import DBService
 from glpi_bot.services.glpi_service import TicketData
+
+from glpi_bot.bot.handlers.tickets.instances import bot_message
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def setup_send_ticket(glpi: GLPITicketManager, db: DBService) -> Router:
             return
 
         try:
-            login = d.get("login") or await db.get_login(callback.from_user.id) # тут я хочу найти по id пользователя
+            login = d.get("login") or await db.get_login(callback.from_user.id)
         except Exception as e:
             logger.debug(f"Не удалось получить логин, {e}")
             await callback.answer("Произошла ошибка. Попробуйте сначала.")

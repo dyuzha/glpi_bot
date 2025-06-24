@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional, Union
+from typing import Optional
 import logging
 
 

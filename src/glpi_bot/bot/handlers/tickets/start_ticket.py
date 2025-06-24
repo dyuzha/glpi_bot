@@ -7,7 +7,7 @@ from aiogram import Router
 
 from glpi_bot.bot.handlers.utils import add_step, default_handle
 from glpi_bot.bot.states import TicketStates, BaseStates
-from glpi_bot.bot.text import CANCEL_KEY, SELECT_TYPE_TICKET
+from glpi_bot.bot.text_constants import CANCEL_KEY, SELECT_TYPE_TICKET
 from glpi_bot.bot.keyboards import incident_types_kb, request_types_kb
 
 

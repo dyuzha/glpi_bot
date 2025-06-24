@@ -8,21 +8,10 @@ from aiogram.fsm.context import FSMContext
 from glpi_bot.bot.states import BaseStates, AuthStates
 from glpi_bot.services import DBService
 from glpi_bot.bot.keyboards import main_kb
+from glpi_bot.bot.text_constants import START_MESSAGE, AUTH_REQUIRED_MESSAGE
 
 
 logger = logging.getLogger(__name__)
-
-
-START_MESSAGE = (
-    "👋 Привет! Я помогу вам создать заявку "
-    "в техническую поддержку <b>ООО \"Проф ИТ\"</b>"
-)
-
-AUTH_REQUIRED_MESSAGE = (
-    "Для продолжения работы с ботом <b>необходима авторизация</b>\n"
-    "Введите свой логин, используемый в вашей организации "
-    "(например: <code>ivanov_ii</code>):"
-)
 
 
 def setup_entrypoint(db: DBService) -> Router:
