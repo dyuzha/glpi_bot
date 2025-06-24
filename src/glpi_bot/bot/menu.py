@@ -5,7 +5,7 @@ from aiogram.types import BotCommand
 async def set_bot_commands(bot: Bot):
     commands = [
         BotCommand(command="/start", description="Запустить бота"),
-        BotCommand(command="/delete_me", description="Отменить регистрацию"),
+        # BotCommand(command="/delete_me", description="Отменить регистрацию"),
     ]
     await bot.set_my_commands(commands)
 

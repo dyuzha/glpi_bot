@@ -1,4 +1,4 @@
-# main.py
+# test_main.py
 
 from tests.mocks import create_mock_services
 from glpi_bot.bot import create_bot
