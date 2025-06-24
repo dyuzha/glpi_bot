@@ -1,21 +1,21 @@
 # /database/base.py - Инициализация бд
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncEngine
+from sqlalchemy.orm import DeclarativeBase
 
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 class Database:
     def __init__(self, db_url: str):
-        self.engine = create_engine(db_url)
-        self.SessionLocal = sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=self.engine
+        self.engine: AsyncEngine = create_async_engine(db_url, echo=False)
+        self.async_sessionmaker = async_sessionmaker(
+            bind=self.engine,
+            expire_on_commit=False
         )
 
-    def create_tables(self, Base):
-        Base.metadata.create_all(bind=self.engine)
+    async def create_tables(self):
+        async with self.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)

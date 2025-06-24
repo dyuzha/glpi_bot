@@ -30,7 +30,7 @@ def setup_send_ticket(glpi: GLPITicketManager, db: DBService) -> Router:
             return
 
         try:
-            login = d.get("login") or db.get_login(callback.from_user.id) # тут я хочу найти по id пользователя
+            login = d.get("login") or await db.get_login(callback.from_user.id) # тут я хочу найти по id пользователя
         except Exception as e:
             logger.debug(f"Не удалось получить логин, {e}")
             await callback.answer("Произошла ошибка. Попробуйте сначала.")

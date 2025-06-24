@@ -1,3 +1,6 @@
+from typing import Optional
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from glpi_bot.database import User, DBSessionManager
 import logging
 
@@ -9,33 +12,47 @@ class DBService:
     def __init__(self, session_manager: DBSessionManager):
         self.session_manager = session_manager
 
-    def save_user(self, telegram_id: int, login: str):
-        with self.session_manager.get_session() as session:
-            # Проверяем, есть ли уже такой пользователь
-            user = session.query(User).filter_by(
-                telegram_id= telegram_id).first()
+
+    async def _get_user(self,
+                        telegram_id: int,
+                        session: Optional[AsyncSession] = None,
+    ) -> Optional[User]:
+        if session is not None:
+            stmt = select(User).filter_by(telegram_id=telegram_id)
+            result = await session.execute(stmt)
+            user = result.scalars().first()
+            return user
+
+        async with self.session_manager.get_session() as session:
+            return await self._get_user(telegram_id=telegram_id, session=session)
+
+
+    async def save_user(self, telegram_id: int, login: str):
+        async with self.session_manager.get_session() as session:
+            user = await self._get_user(telegram_id=telegram_id, session=session)
+
             if user:
-                # Обновляем данные существующего пользователя
                 user.login = login
             else:
-                # Создаем нового пользователя
                 session.add(User(telegram_id=telegram_id, login=login))
 
-    def check_user(self, telegram_id: int) -> bool:
-        with self.session_manager.get_session() as session:
-            user = session.query(User).filter_by(telegram_id=telegram_id).first()
+
+    async def check_user(self, telegram_id: int) -> bool:
+        async with self.session_manager.get_session() as session:
+            user = await self._get_user(telegram_id=telegram_id, session=session)
             return user is not None
 
-    def get_login(self, telegram_id: int):
-        with self.session_manager.get_session() as session:
-            user = session.query(User).filter_by(telegram_id=telegram_id).first()
+
+    async def get_login(self, telegram_id: int) -> Optional[str]:
+        async with self.session_manager.get_session() as session:
+            user = await self._get_user(telegram_id=telegram_id, session=session)
             return user.login if user else None
 
-    def delete_user(self, telegram_id: int) -> bool:
-        with self.session_manager.get_session() as session:
-            user = session.query(User).filter_by(telegram_id=telegram_id).first()
+
+    async def delete_user(self, telegram_id: int) -> bool:
+        async with self.session_manager.get_session() as session:
+            user = await self._get_user(telegram_id=telegram_id, session=session)
             if user:
-                session.delete(user)
-                session.commit()
+                await session.delete(user)
                 return True
             return False

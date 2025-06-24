@@ -28,9 +28,9 @@ AUTH_REQUIRED_MESSAGE = (
 def setup_entrypoint(db: DBService) -> Router:
     router = Router()
 
-    def check_register(user_id: int):
+    async def check_register(user_id: int):
         try:
-            login = db.get_login(telegram_id=user_id)
+            login = await db.get_login(telegram_id=user_id)
         except Exception as e:
             logger.error(f"Database error for user {user_id}: {str(e)}")
             raise
@@ -41,7 +41,7 @@ def setup_entrypoint(db: DBService) -> Router:
         logger.debug("Call main_menu")
         user_id = message.from_user.id
 
-        login = check_register(user_id)
+        login = await check_register(user_id)
 
         if login is None:
             await state.set_state(AuthStates.LOGIN)

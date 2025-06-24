@@ -13,7 +13,7 @@ logger = setup_logging()
 async def main():
     logger.info("Starting bot")
 
-    services = create_services()
+    services = await create_services()
     glpi_service = services["glpi_service"]
 
     bot, dp, on_startup = create_bot(services, TELEGRAM_TOKEN)

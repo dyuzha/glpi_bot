@@ -16,9 +16,6 @@ from .mail_service import EmailConfirmation
 from glpi_bot.glpi import GLPISessionManager
 from .glpi_service import GLPITicketManager, OrganisationCache
 
-# factory
-# from .factory import create_services
-
 
 __all__ = [
         "DBService",
@@ -27,7 +24,6 @@ __all__ = [
         "GLPISessionManager",
         "GLPITicketManager",
         "OrganisationCache",
-        # "create_services",
         "LDAPError",
         "LDAPMailNotFound",
         "LDAPUserNotFound",

@@ -17,7 +17,7 @@ def setup_admins_command(db: DBService):
         await state.clear()
         user_id = message.from_user.id
         try:
-            if db.delete_user(telegram_id=user_id):
+            if await db.delete_user(telegram_id=user_id):
                 await message.answer("Ваша запись удалена из бд")
                 logger.error(f"Пользователь {user_id} успешно удален из бд")
             else:

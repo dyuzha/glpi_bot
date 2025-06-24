@@ -8,10 +8,15 @@ from glpi_bot.bot.handlers.authorization.models import AuthService
 from glpi_bot.services import DBService, EmailConfirmation
 from glpi_bot.bot.states import AuthStates, BaseStates
 
-from .models import AuthService
-from glpi_bot.bot.keyboards import auth_code_kb, main_kb, succ_kb
-from .settings import LENGTH_CODE, MAIL_NOT_FOUND, USER_NOT_FOUND, AUTHORIZATION_ERROR
 from glpi_bot.services import LDAPMailNotFound, LDAPError, LDAPUserNotFound
+from glpi_bot.bot.keyboards import auth_code_kb, main_kb
+from .models import AuthService
+from .settings import (
+        LENGTH_CODE,
+        MAIL_NOT_FOUND,
+        USER_NOT_FOUND,
+        AUTHORIZATION_ERROR
+)
 
 
 logger = logging.getLogger(__name__)
@@ -229,7 +234,7 @@ def setup_authorization(
         auth_state = await get_auth_state(state)
 
         try:
-            db_service.save_user(
+            await db_service.save_user(
                 telegram_id=message.from_user.id,
                 login=auth_state.login
             )
