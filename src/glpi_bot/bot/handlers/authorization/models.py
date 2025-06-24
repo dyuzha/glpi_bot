@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 LOGIN_MAX_ATTEMPTS = 3              # Макс. число попыток
-LOGIN_TIMEOUT_AFTER_LIMIT = 10      # Блокировка после превышения (сек)
+LOGIN_TIMEOUT_AFTER_LIMIT = 60      # Блокировка после превышения (сек)
 # LOGIN_REQUEST_TIMEOUT = 5         # Таймаут между запросами (сек)
 
 CODE_MAX_ATTEMPTS = 3               # Макс. число попыток
-CODE_TIMEOUT_AFTER_LIMIT = 10       # Блокировка после превышения (сек)
+CODE_TIMEOUT_AFTER_LIMIT = 60       # Блокировка после превышения (сек)
 CODE_REQUEST_TIMEOUT = 60           # Таймаут между запросами (сек)
-CODE_LIFE_TIME = 120                # Время действия кода
+CODE_LIFE_TIME = 300
 
 
 @dataclass
