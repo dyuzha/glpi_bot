@@ -1,4 +1,4 @@
-FROM python:3.10-slim AS builder
+FROM python:3.13-slim AS builder
 
 LABEL maintainer="Dyuzhev Matvey"
 
@@ -31,7 +31,7 @@ RUN poetry export --without-hashes --only=main --no-interaction -f requirements.
 RUN poetry export --without-hashes --only=dev --no-interaction -f requirements.txt -o requirements-dev.txt
 
 
-FROM python:3.10-slim AS production
+FROM python:3.13-slim AS production
 
 # Установка корневых сертификатов
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
