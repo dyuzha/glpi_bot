@@ -138,7 +138,7 @@ def setup_authorization(
         # Обработка возможности отправки кода
         remaining_blocked_time = auth_state.code_handler.get_blocked_request_time()
         if remaining_blocked_time != 0:
-            await message.answer("Отправить код повторно возможно через"
+            await message.answer("Отправить код повторно возможно через "
                                  f"{remaining_blocked_time} секунд",
                                  reply_markup=auth_code_kb())
             return
