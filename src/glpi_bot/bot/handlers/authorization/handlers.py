@@ -178,7 +178,7 @@ def setup_authorization(
         if auth_state.code_handler.get_blocked_attempts_time() != 0:
             remaining = auth_state.code_handler.get_blocked_attempts_time()
             await message.answer(f"Превышено количество попыток."
-                                 "Попробуйте через {remaining} секунд",
+                                 f"Попробуйте через {remaining} секунд",
                                  reply_markup=auth_code_kb())
             return
 
