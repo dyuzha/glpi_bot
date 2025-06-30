@@ -38,7 +38,7 @@ def setup_send_ticket(glpi: GLPITicketManager, db: DBService) -> Router:
             return
 
         ticket_data = TicketData(
-                login = login,
+                login = login.lower(),
                 # name = f"[{d['login']}] {d['title']}",
                 name = d['title'],
                 content = d['description'],
