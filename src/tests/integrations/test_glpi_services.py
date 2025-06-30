@@ -8,7 +8,7 @@ from glpi_bot.services.glpi_service import (
 )
 
 
-@pytest.mark.parametrize("login", ["dyuzhev_mn", "admin"])
+@pytest.mark.parametrize("login", ["dyuzhev_mn", "akimov_sv", "aleksenko_vv", "borzenko_va"])
 async def test_send_ticket_integration(login):
     session_manager = GLPISessionManager(
         url=GLPIEnv.URL,
