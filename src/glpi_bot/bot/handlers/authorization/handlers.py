@@ -77,7 +77,7 @@ def setup_authorization(
                                  reply_markup=types.ReplyKeyboardRemove())
             return
 
-        login = message.text
+        login = message.text or ""
         auth_state.login_handler.add_attempt()
 
         # Полкучение email
@@ -206,17 +206,32 @@ def setup_authorization(
         await success_handler(message, state)
 
 
+    async def change_login(message: types.Message, state: FSMContext):
+        logger.debug(f"Call change_login")
+        auth_state = await get_auth_state(state)
+
+        # Обработка возможности отправки кода
+        remaining_blocked_time = auth_state.code_handler.get_blocked_request_time()
+        if remaining_blocked_time != 0:
+            await message.answer("Вести другой логин и отправить код повторно возможно через"
+                                 f"{remaining_blocked_time} секунд",
+                                 reply_markup=auth_code_kb())
+            return await state.set_state(AuthStates.CODE_HANDLER)
+
+        await message.answer(
+            "Введите другой логин",
+            reply_markup=types.ReplyKeyboardRemove()
+        )
+        await state.set_state(AuthStates.LOGIN)
+
+
     @router.message(AuthStates.CODE_HANDLER, F.text)
     async def invalid_code_handler(message: types.Message, state: FSMContext):
         logger.debug(f"Обработка нестандартного ответа")
         """Обработка нестандартного сообщения на запрос кода"""
         match message.text:
             case "Изменить логин":
-                await message.answer(
-                    "Введите другой логин",
-                    reply_markup=types.ReplyKeyboardRemove()
-                )
-                await state.set_state(AuthStates.LOGIN)
+                await change_login(message, state)
 
             case "Отправить код повторно":
                 await process_code(message, state)
