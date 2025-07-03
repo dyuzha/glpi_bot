@@ -7,7 +7,7 @@ from glpi_bot.glpi.session import GLPISessionManager
 from glpi_bot.services.async_cache import AsyncBaseCache
 
 
-REQUEST_TYPE_TELEGRAM = 14
+REQUEST_TYPE_TELEGRAM = 9
 
 
 @dataclass
