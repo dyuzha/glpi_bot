@@ -1,6 +1,7 @@
 import logging
 from aiogram import Router
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
+from aiogram.types import CallbackQuery
 from aiogram.types.message import Message
 from aiogram.types.reply_keyboard_remove import ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
@@ -50,5 +51,17 @@ def setup_entrypoint(db: DBService) -> Router:
         logger.debug("Call cmd_start")
         await state.clear()
         await main_menu(message, state)
+
+
+    @router.message(StateFilter(None))
+    async def msg_handler(message: Message, state: FSMContext):
+        logger.debug("Call msg_handler")
+        await cmd_start(message, state)
+
+
+    @router.message(StateFilter(None))
+    async def cb_handler(callback: CallbackQuery, state: FSMContext):
+        logger.debug("Call msg_handler")
+        await cmd_start(callback.message, state)
 
     return router
