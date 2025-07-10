@@ -1,0 +1,27 @@
+services:
+
+  glpi_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: glpi_bot
+    container_name: gbc
+    restart: unless-stopped
+    env_file:
+      .env
+    volumes:
+      - "${GLPI_TG_CONFIG_DIR}:/configs"
+      - "${GLPI_TG_DATA_DIR}:/data"
+    networks:
+      - internal
+
+  ad_api:
+    image: ad_api
+    container_name: aac
+    restart: unless-stopped
+    ports:
+      - "82:8000"
+
+networks:
+  internal:
+    driver: bridge

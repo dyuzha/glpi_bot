@@ -16,6 +16,9 @@ users.db
 # ide
 .idea
 
+# env
+.env
+
 # Тестовая среда
 test_env.py
 **/.env.test.py
