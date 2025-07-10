@@ -9,8 +9,8 @@ services:
     container_name: gbc
     restart: unless-stopped
     environment:
-      - GLPI_TG_CONFIG_DIR=${GLPI_TG_CONFIG_DIR}
-      - GLPI_TG_DATA_DIR=${GLPI_TG_DATA_DIR}
+      # - GLPI_TG_CONFIG_DIR=${GLPI_TG_CONFIG_DIR}
+      # - GLPI_TG_DATA_DIR=${GLPI_TG_DATA_DIR}
 
     volumes:
       - "${GLPI_TG_CONFIG_DIR}:/configs"
