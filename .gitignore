@@ -14,7 +14,7 @@ __pycache__
 users.db
 
 #env
-env
+.env
 
 # ide
 .idea

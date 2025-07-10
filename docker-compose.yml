@@ -1,6 +1,6 @@
 version: '3.8'
 
-servics:
+services:
   glpi_bot:
     build:
       context: .
