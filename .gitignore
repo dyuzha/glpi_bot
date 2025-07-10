@@ -13,6 +13,9 @@ __pycache__
 # БД
 users.db
 
+#env
+env
+
 # ide
 .idea
 
