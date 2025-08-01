@@ -65,4 +65,4 @@ ENV GLPI_TG_SETTINGS=/configs/settings.ini
 
 # Запускаем приложение
 # CMD ["python", "main.py"]
-CMD ["/entrypoint.sh"]
+CMD ["/entrypoint.sh", "main.py"]

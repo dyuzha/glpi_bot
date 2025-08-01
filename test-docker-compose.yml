@@ -1,4 +1,4 @@
-# docker-compose.yml
+# test-docker-compose.yml
 
 services:
 
@@ -9,7 +9,8 @@ services:
     image: glpi_bot
     container_name: gbc
     restart: unless-stopped
-    env_file: .env
+    command: ["/entrypoint.sh", "test_main.py"]
+    env_file: .test.env
     environment:
       - GLPI_TG_CONFIG_DIR=/configs
       - GLPI_TG_DATA_DIR=/data

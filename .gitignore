@@ -9,12 +9,13 @@ app/logs/*
 
 # Кеш
 __pycache__
+.swp
 
 # БД
 users.db
 
 #env
-.env
+*.env
 
 # ide
 .idea

@@ -25,7 +25,6 @@ async def main():
         await glpi_service.shutdown_session()
 
 
-
 if __name__ == "__main__":
     try:
         asyncio.run(main())

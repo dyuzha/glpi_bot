@@ -11,4 +11,4 @@ fi
 
 
 # Запуск приложения
-exec python main.py
+exec python $1
