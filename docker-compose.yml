@@ -26,7 +26,10 @@ services:
     container_name: aac
     restart: unless-stopped
     ports:
-      - "82:8000"
+      # - "82:8000"
+      - "82:82"
+    env_file:
+      - "/opt/ad_api/.env"
 
 networks:
   internal:
